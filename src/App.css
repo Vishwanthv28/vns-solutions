@@ -31,6 +31,7 @@ h1 em,h2 em{color:var(--violet);font-family:"Playfair Display",serif;font-style:
 
 .hero-human{max-width:570px;margin:14px 0 0;color:var(--muted);font-size:14px;line-height:1.6}.hero-human b{color:var(--black)}.next-steps{margin-top:28px;border-top:1px solid #303038}.next-steps .mini-label{margin:16px 0 10px;color:#b9b9c5}.next-steps ol{list-style:none;padding:0;margin:0}.next-steps li{display:flex;gap:12px;padding:8px 0;color:#efeff5;font-size:14px}.next-steps li span{color:var(--violet);font:11px "DM Mono",monospace}.form-privacy{margin:-2px 0 16px;color:var(--muted);font-size:12px;line-height:1.5}
 .logo-by{margin-left:8px;color:var(--muted);font:10px "DM Mono",monospace;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle}@media(max-width:480px){.logo-by{display:none}}
+.footer-founder{margin:18px 0 0;color:#efeff5;font:11px "DM Mono",monospace;letter-spacing:.06em;text-transform:uppercase}.hero-wordmark span{animation-duration:16s;will-change:transform}
 
 /* India studio navigation and industry directory */
 .nav-links{gap:22px}.nav-links a{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}.button-small{padding:0 17px;font:10px "DM Mono",monospace;letter-spacing:.09em;text-transform:uppercase}
