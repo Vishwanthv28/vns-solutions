@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { brand, faqs, services, work } from "./siteData";
 
-const Icon = ({ name }) => <span aria-hidden="true" className={`icon icon-${name}`} />;
 
 function ThemeButton({ theme, onClick }) {
   return <button className="theme-toggle" type="button" onClick={onClick} aria-label="Toggle colour theme">
@@ -17,6 +16,27 @@ export default function App() {
   const [sent, setSent] = useState(false);
 
   useEffect(() => { document.documentElement.dataset.theme = theme; localStorage.setItem("vns-theme", theme); }, [theme]);
+  useEffect(() => {
+    if (!("IntersectionObserver" in window) || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    const sections = document.querySelectorAll(".section-heading, .service-card, .work-card, .process-step, .founder-signature");
+    sections.forEach(section => {
+      section.classList.add("reveal");
+      observer.observe(section);
+    });
+    return () => {
+      observer.disconnect();
+      sections.forEach(section => section.classList.remove("reveal"));
+    };
+  }, []);
+
   const messageLink = brand.whatsapp ? `https://wa.me/${brand.whatsapp}?text=${encodeURIComponent("Hi VNS Solutions, I would like to discuss a project.")}` : `mailto:${brand.email}?subject=${encodeURIComponent("Project enquiry for VNS Solutions")}`;
 
   function handleSubmit(event) {
@@ -34,9 +54,9 @@ export default function App() {
       <nav className="nav page-width" aria-label="Main navigation">
         <a className="logo" href="#top" aria-label="VNS Solutions home"><span>V</span>NS<span className="dot">.</span></a>
         <div className={`nav-links ${menuOpen ? "open" : ""}`}>
-          <a href="#work" onClick={() => setMenuOpen(false)}>Work</a><a href="#process" onClick={() => setMenuOpen(false)}>Process</a><a href="#services" onClick={() => setMenuOpen(false)}>Services</a><a href="#industries" onClick={() => setMenuOpen(false)}>Industries</a><a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
+          <a href="#work" onClick={() => setMenuOpen(false)}>Capabilities</a><a href="#process" onClick={() => setMenuOpen(false)}>Process</a><a href="#services" onClick={() => setMenuOpen(false)}>Services</a><a href="#industries" onClick={() => setMenuOpen(false)}>Industries</a><a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
         </div>
-        <div className="nav-actions"><ThemeButton theme={theme} onClick={() => setTheme(theme === "light" ? "dark" : "light")} /><a className="button button-small" href="#contact">Book a discovery <span>→</span></a><button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Open navigation">{menuOpen ? "×" : "☰"}</button></div>
+        <div className="nav-actions"><ThemeButton theme={theme} onClick={() => setTheme(theme === "light" ? "dark" : "light")} /><a className="button button-small" href="#contact">Book a discovery <span>→</span></a><button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen}>{menuOpen ? "×" : "☰"}</button></div>
       </nav>
     </header>
 
@@ -45,10 +65,10 @@ export default function App() {
         <div className="hero-copy">
           <p className="eyebrow"><span className="live-dot" /> Digital growth studio · India</p>
           <h1>A digital presence that feels <em>like your business.</em></h1>
-          <p className="hero-text">VNS Solutions creates thoughtful websites and practical automations for businesses that want to be trusted before the first conversation.</p>
-          <div className="hero-actions"><a className="button" href="#contact">Start a conversation <span>→</span></a><a className="text-link" href="#work">See selected work <span>↘</span></a></div>
+          <p className="hero-text">Websites that help customers understand what you offer, find your business and get in touch. Built around your services, your voice and the way you work.</p>
+          <div className="hero-actions"><a className="button" href="#contact">Start a conversation <span>→</span></a><a className="text-link" href="#work">Explore the possibilities <span>↘</span></a></div>
           <p className="hero-proof">Direct communication · Clear scope · Your website stays yours</p>
-          <p className="hero-human"><b>Small studio. Focused attention.</b> I work directly with each business—from the first conversation to the final launch.</p>
+          <p className="hero-human"><b>Small studio. Focused attention.</b> A clear plan, regular previews and someone you can talk to throughout the build.</p>
           <a className="scroll-cue" href="#services"><span aria-hidden="true" /> Scroll to explore</a>
         </div>
         <div className="hero-art editorial-hero" aria-label="VNS Solutions brand statement" role="img">
@@ -58,7 +78,7 @@ export default function App() {
         </div>
       </section>
 
-      <section className="marquee" aria-label="Industries VNS Solutions serves"><div className="marquee-track"><div className="marquee-group"><span>Restaurants</span><i>✦</i><span>Clinics</span><i>✦</i><span>Gyms</span><i>✦</i><span>Salons</span><i>✦</i><span>Real estate</span><i>✦</i><span>Boutiques</span><i>✦</i><span>Builders</span><i>✦</i><span>Hotels</span><i>✦</i></div><div className="marquee-group" aria-hidden="true"><span>Restaurants</span><i>✦</i><span>Clinics</span><i>✦</i><span>Gyms</span><i>✦</i><span>Salons</span><i>✦</i><span>Real estate</span><i>✦</i><span>Boutiques</span><i>✦</i><span>Builders</span><i>✦</i><span>Hotels</span><i>✦</i></div></div></section>
+      <section className="marquee" aria-label="Industries VNS Solutions serves"><div className="marquee-track"><div className="marquee-group"><span>Restaurants</span><i>✦</i><span>Clinics</span><i>✦</i><span>Gyms</span><i>✦</i><span>Salons</span><i>✦</i><span>Real estate</span><i>✦</i><span>Boutiques</span><i>✦</i><span>Builders</span><i>✦</i><span>Hotels</span><i>✦</i><span>Studios</span><i>✦</i></div><div className="marquee-group" aria-hidden="true"><span>Restaurants</span><i>✦</i><span>Clinics</span><i>✦</i><span>Gyms</span><i>✦</i><span>Salons</span><i>✦</i><span>Real estate</span><i>✦</i><span>Boutiques</span><i>✦</i><span>Builders</span><i>✦</i><span>Hotels</span><i>✦</i><span>Studios</span><i>✦</i></div></div></section>
 
       <section className="section industries-section page-width" id="industries"><p className="eyebrow">Industries</p><div className="section-heading"><h2>Made for businesses that want to look <em>as good online</em> as they do in person.</h2><p>We tailor the message, booking or enquiry path and follow-up around how your customers actually choose.</p></div><div className="industry-grid">{[["01", "Restaurants", "Menus, reservations, catering enquiries and Google-first discovery."], ["02", "Clinics", "Clear services, appointments and credibility for every first-time visitor."], ["03", "Gyms", "Membership, consultation and enquiry journeys that are easy on mobile."], ["04", "Salons", "Service menus, stylist profiles and friction-free booking paths."], ["05", "Real estate", "Project showcases and qualified enquiries without missed follow-up."], ["06", "Boutiques", "A distinctive brand presence that moves visitors towards an order or visit."], ["07", "Builders", "Project details, location highlights and quote requests for serious buyers."], ["08", "Hotels", "Stay enquiries, room highlights and a more confident first impression."], ["09", "Studios", "Portfolio-led websites for photographers, architects, consultants and creators."]].map(([number, title, text]) => <article className="industry-card" key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></article>)}</div></section>
 
@@ -68,18 +88,18 @@ export default function App() {
         <div className="service-grid">{services.map((service) => <article className="service-card" key={service.number}><span className="service-number">{service.number}</span><h3>{service.title}</h3><p>{service.text}</p><div className="tag-row">{service.tags.map(tag => <span key={tag}>{tag}</span>)}</div></article>)}</div>
       </section>
 
-      <section className="section surface-section" id="work"><div className="page-width"><p className="eyebrow">Selected capabilities</p><div className="section-heading"><h2>Useful technology, built around real work.</h2><p>Show only completed projects or demos you can confidently explain. Add live links and outcomes as your portfolio grows.</p></div>
+      <section className="section surface-section" id="work"><div className="page-width"><p className="eyebrow">What we can build</p><div className="section-heading"><h2>Useful technology, built around real work.</h2><p>A few project ideas to start the conversation. These illustrate what we can build; they are not client case studies.</p></div>
         <div className="work-grid">{work.map((project, index) => <article className={`work-card work-${index + 1}`} key={project.title}><div className="work-visual"><span>{String(index + 1).padStart(2, "0")}</span><div className="visual-line" /><div className="visual-orb" /></div><p className="work-type">{project.type}</p><h3>{project.title}</h3><p>{project.text}</p><div className="tag-row">{project.tags.map(tag => <span key={tag}>{tag}</span>)}</div><a href="#contact" className="work-link">Discuss a similar project <span>→</span></a></article>)}</div></div>
       </section>
 
       <section className="section page-width" id="process"><p className="eyebrow">How we work</p><div className="section-heading"><h2>A simple, visible process.</h2><p>No confusing handoff. You know what is happening, what you need to approve and what comes next.</p></div><div className="process-grid">{[["01", "Discover", "We discuss your business, your customers and the one result the project should achieve."], ["02", "Plan", "You receive a written scope, a clear quote and a design direction before building starts."], ["03", "Build", "We create, test and refine the experience across phone, tablet and desktop."], ["04", "Launch", "The final website is launched in your name, with a handover and support plan."]].map(([n,t,p]) => <div className="process-step" key={n}><span>{n}</span><h3>{t}</h3><p>{p}</p></div>)}</div></section>
 
-      <section className="section page-width promise"><div><p className="eyebrow">Why VNS</p><h2>Clarity builds trust.</h2></div><div className="promise-list"><p><b>Written scope.</b> You know what is included before work starts.</p><p><b>Client ownership.</b> Your domain, hosting and final code remain yours.</p><p><b>Practical AI.</b> We automate a defined task, never AI just for a trend.</p><p><b>Direct communication.</b> You work with the people building your project.</p></div></section>
+      <section className="section page-width promise"><div><p className="eyebrow">Why VNS</p><h2>Clarity builds trust.</h2></div><div className="promise-list"><p><b>Written scope.</b> You know what is included before work starts.</p><p><b>Client ownership.</b> Your domain, hosting and final code remain yours.</p><p><b>Practical AI.</b> We automate a defined task, never AI just for a trend.</p><p><b>Direct communication.</b> You speak directly with Vishwanth, who plans and builds your website.</p></div></section>
 
       <section className="section surface-section" id="faq"><div className="page-width faq-layout"><div><p className="eyebrow">Questions</p><h2>Before we start.</h2><p>Good projects begin with a shared understanding. Here are the essentials.</p></div><div className="faq-list">{faqs.map(([question, answer], index) => <div className="faq-item" key={question}><button onClick={() => setOpenFaq(index === openFaq ? -1 : index)} aria-expanded={index === openFaq}>{question}<span>{index === openFaq ? "−" : "+"}</span></button>{index === openFaq && <p>{answer}</p>}</div>)}</div></div></section>
 
-      <section className="contact-section" id="contact"><div className="page-width contact-layout"><div><p className="eyebrow"><span className="live-dot" /> Open for new projects</p><h2>Let’s build something that earns its place in your business.</h2><p>Tell us what you need. You’ll get a clear reply with the right next step—not a sales script.</p><div className="next-steps" aria-label="What happens next"><p className="mini-label">WHAT HAPPENS NEXT</p><ol><li><span>01</span>Tell us about your business</li><li><span>02</span>Get clear next steps</li><li><span>03</span>Build and refine together</li></ol></div><a className="contact-email" href={`mailto:${brand.email}`}>{brand.email} <span>↗</span></a><p className="small-note">{brand.location} · Reply within one business day</p></div><form className="contact-form" onSubmit={handleSubmit}><label>Your name<input required name="name" placeholder="Your name" /></label><label>Email address<input required type="email" name="email" placeholder="you@business.com" /></label><label>Mobile / WhatsApp number<input required type="tel" name="phone" inputMode="tel" autoComplete="tel" placeholder="+91 98765 43210" /></label><label>Business / project type<input name="business" placeholder="Restaurant, studio, startup…" /></label><label>What should this project achieve?<textarea required name="message" placeholder="More enquiries, bookings, direct orders, better follow-up…" rows="4" /></label><p className="form-privacy">Your details are used only to respond to your enquiry.</p><button className="button" type="submit">Open Gmail draft <span>→</span></button>{sent && <p className="form-success">A Gmail draft is opening with your enquiry ready. Review it, then press Send in Gmail.</p>}</form></div></section>
+      <section className="contact-section" id="contact"><div className="page-width contact-layout"><div><p className="eyebrow"><span className="live-dot" /> Open for new projects</p><h2>Let’s build something that earns its place in your business.</h2><p>Tell me about your business and what you want to improve. I’ll reply through our company email with questions, practical options and the next step.</p><div className="next-steps" aria-label="What happens next"><p className="mini-label">WHAT HAPPENS NEXT</p><ol><li><span>01</span>Tell us about your business</li><li><span>02</span>Get clear next steps</li><li><span>03</span>Build and refine together</li></ol></div><a className="contact-email" href={`mailto:${brand.email}`}>{brand.email} <span>↗</span></a><p className="small-note">{brand.location} · Reply within one business day</p></div><form className="contact-form" onSubmit={handleSubmit}><label>Your name<input required name="name" placeholder="Your name" /></label><label>Email address<input required type="email" name="email" placeholder="you@business.com" /></label><label>Mobile / WhatsApp number<input required type="tel" name="phone" inputMode="tel" autoComplete="tel" placeholder="+91 98765 43210" /></label><label>Business / project type<input name="business" placeholder="Restaurant, studio, startup…" /></label><label>What should this project achieve?<textarea required name="message" placeholder="More enquiries, bookings, direct orders, better follow-up…" rows="4" /></label><p className="form-privacy">Your details are used only to respond to your enquiry. The button opens Gmail; review your draft and press Send to contact us.</p><button className="button" type="submit">Open Gmail draft <span>→</span></button>{sent && <p className="form-success">A Gmail draft is opening with your enquiry ready. Review it, then press Send in Gmail.</p>}</form></div></section>
     </main>
-    <footer><div className="page-width footer-grid"><div><a className="logo" href="#top"><span>V</span>NS<span className="dot">.</span></a><p className="footer-note">Thoughtful websites and practical automation for growing Indian businesses.</p><p className="footer-founder">Founded by Vishwanth</p></div><div><p className="footer-label">Studio</p><a href="#work">Work</a><a href="#process">Process</a><a href="#services">Services</a><a href="#faq">FAQ</a></div><div><p className="footer-label">Industries</p><a href="#industries">Restaurants & cafés</a><a href="#industries">Clinics & wellness</a><a href="#industries">Gyms & salons</a><a href="#industries">Real estate</a></div><div><p className="footer-label">Contact</p><a href={messageLink} target={brand.whatsapp ? "_blank" : undefined} rel="noreferrer">{brand.whatsapp ? "WhatsApp us ↗" : "Email us ↗"}</a><p className="footer-location">India · Working with local businesses</p></div></div><div className="page-width footer-bottom"><p>© {new Date().getFullYear()} VNS Solutions. All rights reserved.</p><a href="#top">Back to top ↑</a></div></footer>
+    <footer><section className="page-width founder-signature" id="studio" aria-labelledby="founder-name"><div><p className="founder-label">A note from the founder</p><h2 id="founder-name">Vishwanth<span aria-hidden="true">.</span></h2><p className="founder-role">Founder, VNS Solutions</p></div><div className="founder-message"><p>I work directly with each business. We’ll start with what your customers need, agree on a clear scope and review the website together as it takes shape.</p><a href="#contact">Tell me what you’re building <span aria-hidden="true">↗</span></a></div></section><div className="page-width footer-grid"><div><a className="logo" href="#top"><span>V</span>NS<span className="dot">.</span></a><p className="footer-note">Thoughtful websites and practical automation for growing Indian businesses.</p></div><div><p className="footer-label">Studio</p><a href="#studio">Meet the founder</a><a href="#work">Capabilities</a><a href="#process">Process</a><a href="#services">Services</a><a href="#faq">FAQ</a></div><div><p className="footer-label">Industries</p><a href="#industries">Restaurants & cafés</a><a href="#industries">Clinics & wellness</a><a href="#industries">Gyms & salons</a><a href="#industries">Real estate</a></div><div><p className="footer-label">Contact</p><a href={messageLink} target={brand.whatsapp ? "_blank" : undefined} rel="noreferrer">{brand.whatsapp ? "WhatsApp us ↗" : "Email us ↗"}</a><p className="footer-location">India · Working with local businesses</p></div></div><div className="page-width footer-bottom"><p>© {new Date().getFullYear()} VNS Solutions. All rights reserved.</p><a href="#top">Back to top ↑</a></div></footer>
   </>;
 }
