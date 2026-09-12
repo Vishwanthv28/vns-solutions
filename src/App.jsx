@@ -10,12 +10,17 @@ function ThemeButton({ theme, onClick }) {
 }
 
 export default function App() {
-  const [theme, setTheme] = useState(() => localStorage.getItem("vns-theme") || "light");
+  const [theme, setTheme] = useState(() => localStorage.getItem("vns-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
   const [menuOpen, setMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
   const [sent, setSent] = useState(false);
 
-  useEffect(() => { document.documentElement.dataset.theme = theme; localStorage.setItem("vns-theme", theme); }, [theme]);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#111114" : "#fbf9f7");
+    localStorage.setItem("vns-theme", theme);
+  }, [theme]);
   useEffect(() => {
     if (!("IntersectionObserver" in window) || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const observer = new IntersectionObserver(entries => {
@@ -50,17 +55,19 @@ export default function App() {
   }
 
   return <>
+    <a className="skip-link" href="#main-content">Skip to main content</a>
     <header className="nav-shell">
       <nav className="nav page-width" aria-label="Main navigation">
         <a className="logo" href="#top" aria-label="VNS Solutions home"><span>V</span>NS<span className="dot">.</span></a>
-        <div className={`nav-links ${menuOpen ? "open" : ""}`}>
+        <div className={`nav-links ${menuOpen ? "open" : ""}`} id="primary-navigation">
           <a href="#work" onClick={() => setMenuOpen(false)}>Capabilities</a><a href="#process" onClick={() => setMenuOpen(false)}>Process</a><a href="#services" onClick={() => setMenuOpen(false)}>Services</a><a href="#industries" onClick={() => setMenuOpen(false)}>Industries</a><a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
         </div>
-        <div className="nav-actions"><ThemeButton theme={theme} onClick={() => setTheme(theme === "light" ? "dark" : "light")} /><a className="button button-small" href="#contact">Book a discovery <span>→</span></a><button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen}>{menuOpen ? "×" : "☰"}</button></div>
+        <div className="nav-actions"><ThemeButton theme={theme} onClick={() => setTheme(theme === "light" ? "dark" : "light")} /><a className="button button-small" href="#contact">Book a discovery <span>→</span></a><button className="menu-button" type="button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen} aria-controls="primary-navigation">{menuOpen ? "×" : "☰"}</button></div>
       </nav>
     </header>
 
-    <main id="top">
+    <main id="main-content">
+      <span id="top" />
       <section className="hero page-width">
         <div className="hero-copy">
           <p className="eyebrow"><span className="live-dot" /> Digital growth studio · India</p>
@@ -98,7 +105,7 @@ export default function App() {
 
       <section className="section surface-section" id="faq"><div className="page-width faq-layout"><div><p className="eyebrow">Questions</p><h2>Before we start.</h2><p>Good projects begin with a shared understanding. Here are the essentials.</p></div><div className="faq-list">{faqs.map(([question, answer], index) => <div className="faq-item" key={question}><button onClick={() => setOpenFaq(index === openFaq ? -1 : index)} aria-expanded={index === openFaq}>{question}<span>{index === openFaq ? "−" : "+"}</span></button>{index === openFaq && <p>{answer}</p>}</div>)}</div></div></section>
 
-      <section className="contact-section" id="contact"><div className="page-width contact-layout"><div><p className="eyebrow"><span className="live-dot" /> Open for new projects</p><h2>Let’s build something that earns its place in your business.</h2><p>Tell me about your business and what you want to improve. I’ll reply through our company email with questions, practical options and the next step.</p><div className="next-steps" aria-label="What happens next"><p className="mini-label">WHAT HAPPENS NEXT</p><ol><li><span>01</span>Tell us about your business</li><li><span>02</span>Get clear next steps</li><li><span>03</span>Build and refine together</li></ol></div><a className="contact-email" href={`mailto:${brand.email}`}>{brand.email} <span>↗</span></a><p className="small-note">{brand.location} · Reply within one business day</p></div><form className="contact-form" onSubmit={handleSubmit}><label>Your name<input required name="name" placeholder="Your name" /></label><label>Email address<input required type="email" name="email" placeholder="you@business.com" /></label><label>Mobile / WhatsApp number<input required type="tel" name="phone" inputMode="tel" autoComplete="tel" placeholder="+91 98765 43210" /></label><label>Business / project type<input name="business" placeholder="Restaurant, studio, startup…" /></label><label>What should this project achieve?<textarea required name="message" placeholder="More enquiries, bookings, direct orders, better follow-up…" rows="4" /></label><p className="form-privacy">Your details are used only to respond to your enquiry. The button opens Gmail; review your draft and press Send to contact us.</p><button className="button" type="submit">Open Gmail draft <span>→</span></button>{sent && <p className="form-success">A Gmail draft is opening with your enquiry ready. Review it, then press Send in Gmail.</p>}</form></div></section>
+      <section className="contact-section" id="contact"><div className="page-width contact-layout"><div><p className="eyebrow"><span className="live-dot" /> Open for new projects</p><h2>Let’s build something that earns its place in your business.</h2><p>Tell me about your business and what you want to improve. I’ll reply through our company email with questions, practical options and the next step.</p><div className="next-steps" aria-label="What happens next"><p className="mini-label">WHAT HAPPENS NEXT</p><ol><li><span>01</span>Tell us about your business</li><li><span>02</span>Get clear next steps</li><li><span>03</span>Build and refine together</li></ol></div><a className="contact-email" href={`mailto:${brand.email}`}>{brand.email} <span>↗</span></a><p className="small-note">{brand.location}</p></div><form className="contact-form" onSubmit={handleSubmit}><label>Your name<input required name="name" autoComplete="name" placeholder="Your name" /></label><label>Email address<input required type="email" name="email" autoComplete="email" placeholder="you@business.com" /></label><label>Mobile / WhatsApp number<input required type="tel" name="phone" inputMode="tel" autoComplete="tel" minLength="7" placeholder="+91 98765 43210" /></label><label>Business / project type<input required name="business" autoComplete="organization" placeholder="Restaurant, clinic, studio…" /></label><label>What should this project achieve?<textarea required name="message" minLength="20" placeholder="More enquiries, bookings, direct orders, better follow-up…" rows="4" /></label><p className="form-privacy">Your details are used only to respond to your enquiry. The button opens Gmail; review your draft and press Send to contact us.</p><button className="button" type="submit">Open Gmail draft <span>→</span></button>{sent && <p className="form-success" role="status">A Gmail draft is opening with your enquiry ready. Review it, then press Send in Gmail.</p>}</form></div></section>
     </main>
     <footer><section className="page-width founder-signature" id="studio" aria-labelledby="founder-name"><div><p className="founder-label">A note from the founder</p><h2 id="founder-name">Vishwanth<span aria-hidden="true">.</span></h2><p className="founder-role">Founder, VNS Solutions</p></div><div className="founder-message"><p>I work directly with each business. We’ll start with what your customers need, agree on a clear scope and review the website together as it takes shape.</p><a href="#contact">Tell me what you’re building <span aria-hidden="true">↗</span></a></div></section><div className="page-width footer-grid"><div><a className="logo" href="#top"><span>V</span>NS<span className="dot">.</span></a><p className="footer-note">Thoughtful websites and practical automation for growing Indian businesses.</p></div><div><p className="footer-label">Studio</p><a href="#studio">Meet the founder</a><a href="#work">Capabilities</a><a href="#process">Process</a><a href="#services">Services</a><a href="#faq">FAQ</a></div><div><p className="footer-label">Industries</p><a href="#industries">Restaurants & cafés</a><a href="#industries">Clinics & wellness</a><a href="#industries">Gyms & salons</a><a href="#industries">Real estate</a></div><div><p className="footer-label">Contact</p><a href={messageLink} target={brand.whatsapp ? "_blank" : undefined} rel="noreferrer">{brand.whatsapp ? "WhatsApp us ↗" : "Email us ↗"}</a><p className="footer-location">India · Working with local businesses</p></div></div><div className="page-width footer-bottom"><p>© {new Date().getFullYear()} VNS Solutions. All rights reserved.</p><a href="#top">Back to top ↑</a></div></footer>
   </>;
