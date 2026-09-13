@@ -3,7 +3,7 @@ export const brand = {
   name: "VNS Solutions",
   email: "vnsolutions28@gmail.com",
   whatsapp: "", // Example: 919876543210. Leave blank to hide the button.
-  location: "India · working with local businesses",
+  location: "Based in India · Working with businesses across industries",
   calendarUrl: "", // Paste a Calendly/Google Calendar booking link when ready.
 };
 
