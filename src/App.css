@@ -99,3 +99,24 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
   .contact-form{padding:20px}
   .contact-form label{margin-bottom:16px}
 }
+
+/* Mobile navigation and form usability */
+@media(max-width:850px){
+  .nav{gap:14px}
+  .nav-actions{gap:8px}
+  .theme-toggle{min-width:44px;min-height:44px;justify-content:center;border-radius:999px}
+  .menu-button{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--card);line-height:1}
+  .nav-links{top:calc(100% + 1px);left:20px;right:20px;gap:2px;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--card);box-shadow:0 20px 50px rgba(20,16,35,.16)}
+  .nav-links a{display:flex;align-items:center;min-height:48px;padding:12px 14px;border-radius:9px;color:var(--ink);font-size:13px}
+  .nav-links a:hover,.nav-links a:focus-visible{background:var(--soft);color:var(--violet)}
+  .contact-form input{min-height:50px}
+  .contact-form textarea{min-height:145px}
+  .contact-form .button{min-height:54px}
+}
+@media(max-width:480px){
+  .nav-links{left:12px;right:12px}
+  .contact-form{max-width:none;padding:20px}
+  .contact-form input,.contact-form textarea{width:100%;padding:13px}
+  .form-privacy{margin-top:2px}
+  .form-success,.form-error{font-size:13px;line-height:1.55}
+}
