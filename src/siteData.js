@@ -14,9 +14,9 @@ export const services = [
 ];
 
 export const work = [
-  { type: "AI + automation", title: "Support chatbot widget", text: "A website assistant that answers common questions and directs high-intent visitors to email or WhatsApp.", tags: ["JavaScript", "Node", "Lead routing"] },
-  { type: "Business website", title: "Local business landing page", text: "A focused mobile experience with services, social proof, location details and direct enquiry paths.", tags: ["Responsive", "SEO basics", "Analytics"] },
-  { type: "Systems", title: "Real-time notification workflow", text: "An event-triggered system that sends the right visual alert to the right team channel.", tags: ["Python", "Webhooks", "Alerts"] },
+  { type: "Concept project · AI support", title: "Clinic support assistant", text: "An interactive approved-answer assistant with guided questions, safeguards and human handoff.", tags: ["Interactive demo", "Guardrails", "Lead routing"], href: "/concepts/clinic-assistant" },
+  { type: "Concept project · Website", title: "Restaurant conversion website", text: "An original hospitality concept with editorial storytelling, menu discovery and a booking flow.", tags: ["Responsive", "Booking UX", "Local SEO"], href: "/concepts/restaurant" },
+  { type: "Concept project · Automation", title: "Lead notification workflow", text: "An interactive operations dashboard showing lead validation, routing and owner notifications.", tags: ["Workflow demo", "Webhooks", "Alerts"], href: "/concepts/lead-automation" },
 ];
 
 export const faqs = [
