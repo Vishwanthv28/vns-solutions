@@ -62,3 +62,9 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--violet);outline-off
 .skip-link:focus{transform:translateY(0)}
 a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid color-mix(in srgb,var(--violet) 45%,transparent);outline-offset:4px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.scroll-cue span:after{animation:none}.button,.theme-knob{transition:none}}
+
+
+/* Secure enquiry form states */
+.website-field{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
+.contact-form .button:disabled{cursor:wait;opacity:.7;transform:none;box-shadow:none}
+.form-error{margin:14px 0 0;color:#c83d52;font-size:12px;font-weight:700}
