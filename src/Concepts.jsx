@@ -61,6 +61,36 @@ function ClinicConcept() {
   </div>;
 }
 
+function SonicDiagnosticsConcept() {
+  const services = [
+    ["01","Imaging & radiology","Clear preparation information and direct enquiry for available scans."],
+    ["02","2D echocardiography","A focused path for visitors looking for heart-imaging information."],
+    ["03","3D & 4D Doppler imaging","A simple overview with appointment and preparation guidance."],
+    ["04","Renal Doppler","Easy-to-find service information before contacting the centre."],
+    ["05","Prenatal screening","Considerate, plain-language information with a direct human contact option."],
+    ["06","Laboratory tests","Public listings mention CBC, thyroid profile and malaria testing."]
+  ];
+  const directions = "https://www.google.com/maps/search/?api=1&query=Sonic+Diagnostics+Kolariya+Pride+Towers+Naimnagar+Hanamkonda";
+  return <div className="concept sonic-concept">
+    <div className="sonic-proposal-bar"><a href="/" aria-label="Return to VNS Solutions">VNS<span>.</span></a><p><b>Independent website proposal</b><span>Public information only · Not commissioned by Sonic Diagnostics</span></p><a href="/#contact">Created by VNS Solutions ↗</a></div>
+    <header className="sonic-nav"><a href="#sonic-top" className="sonic-logo"><i aria-hidden="true"><b/></i><span>SONIC <small>DIAGNOSTICS</small></span></a><nav aria-label="Sonic concept navigation"><a href="#sonic-services">Services</a><a href="#sonic-process">Patient guide</a><a href="#sonic-visit">Visit</a></nav><a className="sonic-call" href="tel:+918128613278">Call centre <span>→</span></a></header>
+    <main id="sonic-top">
+      <section className="sonic-hero"><div className="sonic-hero-copy"><p className="sonic-eyebrow">Diagnostic care in Hanamkonda</p><h1>Clear information.<br/><em>Confident next steps.</em></h1><p>A calm digital experience designed to help patients understand available services, find the centre and speak with the team without unnecessary searching.</p><div className="sonic-actions"><a className="sonic-primary" href="tel:+918128613278">Call for an appointment <span>↗</span></a><a className="sonic-secondary" href={directions} target="_blank" rel="noreferrer">Get directions</a></div><ul><li><b>Mon–Sat</b><span>9:00 AM–9:00 PM</span></li><li><b>Location</b><span>Near Old RTO Office</span></li></ul></div><aside className="sonic-visual" aria-label="Abstract diagnostic imaging illustration"><div className="sonic-scan"><i/><b/><span/></div><div className="sonic-availability"><span>Patient information</span><b>Plan your visit</b><p>Confirm the test, preparation and appointment time directly with the centre.</p><a href="tel:+918128613278">08128 613278 <span>→</span></a></div><small>Concept visual · Replace with approved centre photography</small></aside></section>
+
+      <section className="sonic-info-strip" aria-label="Centre information"><article><span>01</span><div><b>Convenient hours</b><p>Open Monday to Saturday</p></div></article><article><span>02</span><div><b>Direct assistance</b><p>Call before your visit</p></div></article><article><span>03</span><div><b>Easy to locate</b><p>Naimnagar, Hanamkonda</p></div></article></section>
+
+      <section className="sonic-services" id="sonic-services"><div className="sonic-section-head"><p className="sonic-eyebrow">Services listed publicly</p><h2>Find the information you need, faster.</h2><p>This proposal organises diagnostic services into a clean, mobile-friendly experience. Every service and preparation instruction should be confirmed by the centre before publication.</p></div><div className="sonic-service-grid">{services.map(([number,title,text])=><article key={number}><span>{number}</span><div><h3>{title}</h3><p>{text}</p></div><a href="tel:+918128613278" aria-label={`Call about ${title}`}>Ask about this service ↗</a></article>)}</div></section>
+
+      <section className="sonic-process" id="sonic-process"><div><p className="sonic-eyebrow">A simpler patient journey</p><h2>From search to visit, without confusion.</h2></div><ol><li><span>01</span><div><b>Choose the service</b><p>Read a short description and any centre-approved preparation guidance.</p></div></li><li><span>02</span><div><b>Confirm by phone</b><p>Ask about availability, preparation, pricing and the documents to bring.</p></div></li><li><span>03</span><div><b>Reach the centre</b><p>Use one-tap directions and clearly displayed opening hours.</p></div></li></ol></section>
+
+      <section className="sonic-visit" id="sonic-visit"><div className="sonic-location-art" aria-hidden="true"><span>HANAMKONDA</span><i/><b>Old RTO Office</b></div><div><p className="sonic-eyebrow">Visit the centre</p><h2>Simple directions. Direct contact.</h2><address>H.No. 5-11-471, Kolariya Pride Towers,<br/>Near Old RTO Office, Naimnagar,<br/>Hanamkonda, Warangal – 506001, Telangana.</address><p><b>Hours</b> Monday–Saturday, 9:00 AM–9:00 PM<br/><b>Sunday</b> Closed</p><div className="sonic-actions"><a className="sonic-primary" href={directions} target="_blank" rel="noreferrer">Open in Google Maps ↗</a><a className="sonic-secondary" href="tel:+918128613278">Call 08128 613278</a></div></div></section>
+
+      <section className="sonic-proposal-note"><p>Independent concept created by VNS Solutions using publicly listed information.</p><h2>Ready to turn this direction into an official website?</h2><p>Before launch, the centre can confirm services, supply original photography and approve every medical and business detail.</p><a href="/#contact">Discuss this proposal with VNS Solutions <span>↗</span></a></section>
+    </main>
+    <footer className="concept-footer"><span>Independent concept · Not client work · Details require owner approval</span><a href="/">Return to VNS Solutions ↑</a></footer>
+  </div>;
+}
+
 const sampleLeads = [
   {name:"Priya",source:"Website enquiry",intent:"Website redesign",status:"New",time:"2m"},
   {name:"Kiran",source:"WhatsApp",intent:"Automation enquiry",status:"Qualified",time:"18m"},
@@ -88,6 +118,7 @@ export default function Concepts() {
   const path = window.location.pathname.replace(/\/$/, "");
   if (path === "/concepts/restaurant") return <RestaurantConcept/>;
   if (path === "/concepts/clinic-assistant") return <ClinicConcept/>;
+  if (path === "/concepts/sonic-diagnostics") return <SonicDiagnosticsConcept/>;
   if (path === "/concepts/lead-automation") return <AutomationConcept/>;
   return null;
 }
