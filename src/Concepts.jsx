@@ -114,6 +114,41 @@ function SonicDiagnosticsConcept() {
   </div>;
 }
 
+function SonicDiagnosticsClinicalConcept() {
+  const [requestState, setRequestState] = useState("idle");
+  const today = new Date().toISOString().split("T")[0];
+  const directions = "https://www.google.com/maps/search/?api=1&query=Sonic+Diagnostics+Kolariya+Pride+Towers+Naimnagar+Hanamkonda";
+  const services = [
+    {title:"Imaging & radiology", label:"Scan enquiry", image:"/concepts/sonic-clinical/radiology.webp", alt:"Illustrative torso and radiology scan slices", text:"Ask which scans are publicly available, how to prepare and which records to bring."},
+    {title:"2D echocardiography", label:"Heart imaging", image:"/concepts/sonic-clinical/echocardiography.webp", alt:"Illustrative heart and echocardiography screen", text:"Check appointment availability and confirm the preparation or referral documents required."},
+    {title:"3D & 4D Doppler imaging", label:"Doppler imaging", image:"/concepts/sonic-clinical/doppler-imaging.webp", alt:"Illustrative heart and Doppler blood-flow visualization", text:"Ask the centre about scheduling, preparation, price and the right time to arrive."},
+    {title:"Renal Doppler", label:"Specialised scan", image:"/concepts/sonic-clinical/renal-doppler.webp", alt:"Illustrative kidneys and renal blood-flow visualization", text:"Confirm availability and follow only the preparation instructions given by your doctor or the centre."},
+    {title:"Prenatal screening", label:"Screening enquiry", image:"/concepts/sonic-clinical/prenatal-screening.webp", alt:"Illustrative prenatal ultrasound visualization", text:"Contact the centre for considerate guidance about timing, preparation and documents."},
+    {title:"Laboratory tests", label:"Lab enquiry", image:"/concepts/sonic-clinical/laboratory-tests.webp", alt:"Illustrative laboratory sample and microscope", text:"Public listings mention tests such as CBC, thyroid profile and malaria testing; confirm current availability."}
+  ];
+  function handleRequest(event) {
+    event.preventDefault();
+    setRequestState("sent");
+  }
+  return <div className="concept sonic-concept sonic-clinical-concept">
+    <div className="sonic-proposal-bar"><a href="/" aria-label="Return to VNS Solutions">VNS<span>.</span></a><p><b>Independent website concept</b><span>Clinical illustration edition · Not client work</span></p><a href="/#contact">Created by VNS Solutions ↗</a></div>
+    <header className="sonic-nav"><a href="#clinical-top" className="sonic-logo"><i aria-hidden="true"><b/></i><span>SONIC <small>DIAGNOSTICS</small></span></a><nav aria-label="Sonic clinical concept navigation"><a href="#clinical-services">Services</a><a href="#clinical-book">Appointment</a><a href="#clinical-visit">Location</a></nav><a className="sonic-call" href="tel:+918128613278">Call now <span>→</span></a></header>
+    <main id="clinical-top">
+      <section className="clinical-hero">
+        <div className="clinical-hero-copy"><p className="sonic-eyebrow">Diagnostic services in Hanamkonda</p><h1>See the service.<br/><em>Plan your visit.</em></h1><p>Clear service visuals, practical preparation questions and direct contact details—designed to help patients take the next step confidently.</p><div className="sonic-actions"><a className="sonic-primary" href="#clinical-book">Choose a preferred date <span>→</span></a><a className="sonic-secondary" href="tel:+918128613278">Call 08128 613278</a></div></div>
+        <aside className="clinical-info-card"><p className="sonic-eyebrow">Visit information</p><h2>Open six days a week.</h2><div><span><b>Monday–Saturday</b>9:00 AM–9:00 PM</span><span><b>Sunday</b>Closed</span></div><address>H.No. 5-11-471, Kolariya Pride Towers,<br/>Near Old RTO Office, Naimnagar,<br/>Hanamkonda, Warangal – 506001, Telangana.</address><small>Publicly listed details. Please call to confirm before travelling.</small><a href={directions} target="_blank" rel="noreferrer">Open Google Maps <span>↗</span></a></aside>
+      </section>
+
+      <section className="clinical-services" id="clinical-services"><div className="sonic-section-head"><div><p className="sonic-eyebrow">Explore diagnostic services</p><h2>Understand what to ask about.</h2></div><p>Every visual is an educational illustration—not a patient scan or medical result. Availability, suitability and preparation must be confirmed with a qualified professional.</p></div><div className="clinical-service-grid">{services.map((service,index)=><article key={service.title}><figure><img src={service.image} width="1536" height="1024" loading={index < 2 ? "eager" : "lazy"} alt={service.alt}/><figcaption>Illustrative service visual</figcaption></figure><div className="clinical-service-body"><div className="sonic-service-top"><span>{String(index+1).padStart(2,"0")}</span><small>{service.label}</small></div><h3>{service.title}</h3><p>{service.text}</p><a href="#clinical-book" onClick={()=>setRequestState("idle")}>Ask about this service <span>→</span></a></div></article>)}</div></section>
+
+      <section className="clinical-book-section" id="clinical-book"><div><p className="sonic-eyebrow">Appointment request concept</p><h2>Choose a date that suits you.</h2><p>Share a preferred date and time, then the centre would confirm availability. This demonstration does not send or store information.</p><div className="clinical-book-facts"><span><b>Call directly</b><a href="tel:+918128613278">08128 613278</a></span><span><b>Visit</b>Near Old RTO Office, Hanamkonda</span></div></div><form className="clinical-book-form" onSubmit={handleRequest}><label>Full name<input required name="name" autoComplete="name" placeholder="Your name"/></label><label>Mobile number<input required name="phone" type="tel" inputMode="tel" autoComplete="tel" pattern="[0-9+() -]{10,18}" placeholder="+91 98765 43210"/></label><label>Service<select required name="service" defaultValue=""><option value="" disabled>Select a service</option>{services.map(({title})=><option key={title}>{title}</option>)}</select></label><label>Preferred date<input required name="date" type="date" min={today}/></label><label>Preferred time<select required name="time" defaultValue=""><option value="" disabled>Select a time</option><option>Morning</option><option>Afternoon</option><option>Evening</option></select></label><label>Visit type<select required name="visit" defaultValue="Centre visit"><option>Centre visit</option><option>Ask about home collection</option></select></label><button className="sonic-primary" type="submit">Review request <span>→</span></button>{requestState === "sent" && <p className="sonic-form-success" role="status">Demo complete. No information was sent. A real appointment still requires centre confirmation.</p>}<small>Do not enter medical history or report details in this concept form.</small></form></section>
+
+      <section className="clinical-visit" id="clinical-visit"><div><p className="sonic-eyebrow">Address and availability</p><h2>Everything needed before you leave.</h2></div><div className="clinical-visit-details"><address><b>Sonic Diagnostics</b>H.No. 5-11-471, Kolariya Pride Towers,<br/>Near Old RTO Office, Naimnagar,<br/>Hanamkonda, Warangal – 506001, Telangana.</address><div className="sonic-hours"><span><b>Monday–Saturday</b>9:00 AM–9:00 PM</span><span><b>Sunday</b>Closed</span></div><div className="sonic-actions"><a className="sonic-primary" href={directions} target="_blank" rel="noreferrer">Open Google Maps <span>↗</span></a><a className="sonic-secondary" href="tel:+918128613278">Call centre</a></div><small>Hours and services can change. Confirm directly before visiting.</small></div></section>
+    </main>
+    <footer className="concept-footer"><span>Independent concept · Not client work · Details require owner approval</span><a href="/">Return to VNS Solutions ↑</a></footer>
+  </div>;
+}
+
 const sampleLeads = [
   {name:"Priya",source:"Website enquiry",intent:"Website redesign",status:"New",time:"2m"},
   {name:"Kiran",source:"WhatsApp",intent:"Automation enquiry",status:"Qualified",time:"18m"},
@@ -142,6 +177,7 @@ export default function Concepts() {
   if (path === "/concepts/restaurant") return <RestaurantConcept/>;
   if (path === "/concepts/clinic-assistant") return <ClinicConcept/>;
   if (path === "/concepts/sonic-diagnostics") return <SonicDiagnosticsConcept/>;
+  if (path === "/concepts/sonic-diagnostics-clinical") return <SonicDiagnosticsClinicalConcept/>;
   if (path === "/concepts/lead-automation") return <AutomationConcept/>;
   return null;
 }
