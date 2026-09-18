@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { consultantQuestions, recommendVNSServices } from "./consultantQuestions";
 import "./AIConsultant.css";
 
-function AnswerControl({ question, value, onChange, onSubmit }) {
+function AnswerControl({ question, value, onChange, onSelect, onSubmit }) {
   if (question.type === "single") {
-    return <div className="ai-option-list">{question.options.map(option => <button className={value === option ? "selected" : ""} type="button" key={option} onClick={() => onChange(option)}>{option}<span aria-hidden="true">{value === option ? "✓" : "→"}</span></button>)}</div>;
+    return <div className="ai-option-list">{question.options.map(option => <button className={value === option ? "selected" : ""} type="button" key={option} onClick={() => onSelect(option)}>{option}<span aria-hidden="true">{value === option ? "✓" : "→"}</span></button>)}</div>;
   }
 
   if (question.type === "multiple") {
@@ -16,12 +16,14 @@ function AnswerControl({ question, value, onChange, onSubmit }) {
   }
 
   const Element = question.multiline ? "textarea" : "input";
-  return <Element className="ai-text-answer" value={value || ""} onChange={event => onChange(event.target.value)} onKeyDown={event => {
-    if (!question.multiline && event.key === "Enter") {
-      event.preventDefault();
-      onSubmit();
-    }
-  }} rows={question.multiline ? 4 : undefined} placeholder={question.placeholder} autoFocus />;
+  return <div className="ai-text-answer-wrap"><Element className="ai-text-answer" value={value || ""} onChange={event => onChange(event.target.value)} onKeyDown={event => {
+      if (!question.multiline && event.key === "Enter") {
+        event.preventDefault();
+        onSubmit();
+      }
+    }} rows={question.multiline ? 4 : undefined} placeholder={question.placeholder} autoFocus />
+    {!question.multiline && <small>Press Enter to continue</small>}
+  </div>;
 }
 
 function ProjectSummary({ answers }) {
@@ -51,6 +53,7 @@ export default function AIConsultant({ open, onClose }) {
   const panelRef = useRef(null);
   const previousFocus = useRef(null);
   const typingTimer = useRef(null);
+  const advancing = useRef(false);
   const question = consultantQuestions[step];
   const finished = step === consultantQuestions.length;
   const currentValue = question ? answers[question.id] : undefined;
@@ -59,6 +62,7 @@ export default function AIConsultant({ open, onClose }) {
   useEffect(() => {
     if (!open) {
       window.clearTimeout(typingTimer.current);
+      advancing.current = false;
       setTyping(false);
       return undefined;
     }
@@ -87,19 +91,32 @@ export default function AIConsultant({ open, onClose }) {
     };
   }, [open, onClose]);
 
-  function continueFlow() {
-    if (!canContinue || typing) return;
+  function advanceFlow() {
+    if (advancing.current) return;
+    advancing.current = true;
     setTyping(true);
     typingTimer.current = window.setTimeout(() => {
       setStep(current => current + 1);
       setTyping(false);
-    }, 450);
+      advancing.current = false;
+    }, 280);
+  }
+
+  function continueFlow() {
+    if (!canContinue || typing) return;
+    advanceFlow();
+  }
+
+  function selectSingleAnswer(value) {
+    setAnswers(current => ({ ...current, [question.id]: value }));
+    advanceFlow();
   }
 
   function restart() {
     setAnswers({});
     setStep(0);
     setTyping(false);
+    advancing.current = false;
   }
 
   if (!open) return null;
@@ -123,13 +140,13 @@ export default function AIConsultant({ open, onClose }) {
         </div>
 
         {!typing && !finished && <div className="ai-answer-area">
-          <AnswerControl question={question} value={currentValue} onChange={value => setAnswers(current => ({ ...current, [question.id]: value }))} onSubmit={continueFlow} />
+          <AnswerControl question={question} value={currentValue} onChange={value => setAnswers(current => ({ ...current, [question.id]: value }))} onSelect={selectSingleAnswer} onSubmit={continueFlow} />
         </div>}
       </div>
 
       <footer className="ai-consultant-footer">
         <button className="ai-back" type="button" onClick={() => setStep(current => Math.max(0, current - 1))} disabled={step === 0 || typing}>{finished ? "Review answers" : "Back"}</button>
-        {!finished ? <div><span>Question {step + 1} of {consultantQuestions.length}</span><button className="button ai-continue" type="button" onClick={continueFlow} disabled={!canContinue || typing}>{question.optional && !currentValue ? "Skip" : "Continue"} <b>→</b></button></div> : <div><button className="ai-restart" type="button" onClick={restart}>Start again</button><button className="button ai-continue" type="button" onClick={onClose}>Finish preview <b>✓</b></button></div>}
+        {!finished ? <div><span>Question {step + 1} of {consultantQuestions.length}</span>{question.type === "single" ? <small className="ai-auto-advance-note">Select one to continue</small> : <button className="button ai-continue" type="button" onClick={continueFlow} disabled={!canContinue || typing}>{question.optional && !currentValue ? "Skip" : "Continue"} <b>→</b></button>}</div> : <div><button className="ai-restart" type="button" onClick={restart}>Start again</button><button className="button ai-continue" type="button" onClick={onClose}>Finish preview <b>✓</b></button></div>}
       </footer>
     </section>
   </div>;
