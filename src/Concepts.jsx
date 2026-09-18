@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import "./Concepts.css";
+import SonicPatientPortal from "./SonicPatientPortal";
 
 const conceptNotice = "Concept Project · Sample business · Not client work";
 
@@ -187,6 +188,7 @@ export default function Concepts() {
   if (path === "/concepts/clinic-assistant") return <ClinicConcept/>;
   if (path === "/concepts/sonic-diagnostics") return <SonicDiagnosticsConcept/>;
   if (path === "/concepts/sonic-diagnostics-clinical") return <SonicDiagnosticsClinicalConcept/>;
+  if (path === "/concepts/sonic-diagnostics-portal") return <SonicPatientPortal/>;
   if (path === "/concepts/lead-automation") return <AutomationConcept/>;
   return null;
 }
