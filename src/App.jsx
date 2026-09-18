@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { brand, faqs, services, work } from "./siteData";
+import AIConsultant from "./components/AIConsultant/AIConsultant";
 
 
 function ThemeButton({ theme, onClick }) {
@@ -14,6 +15,7 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
   const [formState, setFormState] = useState("idle");
+  const [consultantOpen, setConsultantOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -87,7 +89,7 @@ export default function App() {
           <p className="eyebrow"><span className="live-dot" /> Digital growth studio · India</p>
           <h1>A digital presence that feels <em>like your business.</em></h1>
           <p className="hero-text">Websites that help customers understand what you offer, find your business and get in touch. Built around your services, your voice and the way you work.</p>
-          <div className="hero-actions"><a className="button" href="#contact">Start a conversation <span>→</span></a><a className="text-link" href="#work">Explore the possibilities <span>↘</span></a></div>
+          <div className="hero-actions"><a className="button" href="#contact">Start a conversation <span>→</span></a><button className="button ai-consultant-trigger" type="button" onClick={() => setConsultantOpen(true)}>Plan your project with AI <span>✦</span></button><a className="text-link" href="#work">Explore the possibilities <span>↘</span></a></div>
           <p className="hero-proof">Direct communication · Clear scope · Your website stays yours</p>
           <p className="hero-human"><b>Small studio. Focused attention.</b> A clear plan, regular previews and someone you can talk to throughout the build.</p>
           <a className="scroll-cue" href="#services"><span aria-hidden="true" /> Scroll to explore</a>
@@ -122,5 +124,6 @@ export default function App() {
       <section className="contact-section" id="contact"><div className="page-width contact-layout"><div><p className="eyebrow"><span className="live-dot" /> Open for new projects</p><h2>Let’s build something that earns its place in your business.</h2><p>Tell me about your business and what you want to improve. I’ll reply through our company email with questions, practical options and the next step.</p><div className="next-steps" aria-label="What happens next"><p className="mini-label">WHAT HAPPENS NEXT</p><ol><li><span>01</span>Tell us about your business</li><li><span>02</span>Get clear next steps</li><li><span>03</span>Build and refine together</li></ol></div><a className="contact-email" href={`mailto:${brand.email}`}>{brand.email} <span>↗</span></a><p className="small-note">{brand.location}</p></div><form className="contact-form" onSubmit={handleSubmit}><div className="website-field" aria-hidden="true"><label>Website<input name="website" tabIndex="-1" autoComplete="off" /></label></div><label>Your name<input required name="name" autoComplete="name" placeholder="Your name" /></label><label>Email address<input required type="email" name="email" autoComplete="email" placeholder="you@business.com" /></label><label>Mobile / WhatsApp number<input required type="tel" name="phone" inputMode="tel" autoComplete="tel" minLength="7" placeholder="+91 98765 43210" /></label><label>Business / project type<input required name="business" autoComplete="organization" placeholder="Restaurant, clinic, studio…" /></label><label>What should this project achieve?<textarea required name="message" minLength="20" placeholder="More enquiries, bookings, direct orders, better follow-up…" rows="4" /></label><p className="form-privacy">Your details are used only to respond to your enquiry.</p><button className="button" type="submit" disabled={formState === "sending"}>{formState === "sending" ? "Sending…" : "Send enquiry"} <span>→</span></button>{formState === "sent" && <p className="form-success" role="status">Thank you. Your enquiry has been sent to VNS Solutions.</p>}{formState === "error" && <p className="form-error" role="alert">We could not send your enquiry. Please email vnsolutions28@gmail.com directly.</p>}</form></div></section>
     </main>
     <footer><section className="page-width founder-signature" id="studio" aria-labelledby="founder-name"><div><p className="founder-label">A note from the founder</p><h2 id="founder-name">Vishwanth<span aria-hidden="true">.</span></h2><p className="founder-role">Founder, VNS Solutions</p></div><div className="founder-message"><p>I work directly with each business. We’ll start with what your customers need, agree on a clear scope and review the website together as it takes shape.</p><a href="#contact">Tell me what you’re building <span aria-hidden="true">↗</span></a></div></section><div className="page-width footer-grid"><div><a className="logo" href="#top"><span>V</span>NS<span className="dot">.</span></a><p className="footer-note">Thoughtful websites and practical automation for businesses ready to grow.</p></div><div><p className="footer-label">Studio</p><a href="#studio">Meet the founder</a><a href="#work">Capabilities</a><a href="#process">Process</a><a href="#services">Services</a><a href="#faq">FAQ</a></div><div><p className="footer-label">Industries</p><a href="#industries">Restaurants & cafés</a><a href="#industries">Clinics & wellness</a><a href="#industries">Gyms & salons</a><a href="#industries">Real estate</a></div><div><p className="footer-label">Contact</p><a href={messageLink} target={brand.whatsapp ? "_blank" : undefined} rel="noreferrer">{brand.whatsapp ? "WhatsApp us ↗" : "Email us ↗"}</a><p className="footer-location">Based in India · Working with businesses across industries</p></div></div><div className="page-width footer-bottom"><p>© {new Date().getFullYear()} VNS Solutions. All rights reserved.</p><a href="#top">Back to top ↑</a></div></footer>
+    <AIConsultant open={consultantOpen} onClose={() => setConsultantOpen(false)} />
   </>;
 }
