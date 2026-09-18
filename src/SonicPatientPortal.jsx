@@ -12,25 +12,46 @@ const services = [
 
 const serviceHighlights = [
   {
-    eyebrow: "Imaging services",
-    title: "Scans and Doppler enquiries",
-    text: "Understand what to confirm before your visit, including availability, preparation and records.",
-    image: "/concepts/sonic/imaging-doppler.svg",
-    alt: "Diagnostic professional explaining imaging equipment to a patient",
+    eyebrow: "Scan enquiry",
+    title: "Imaging & radiology",
+    text: "Ask which scans are available, how to prepare and which records or referrals to bring.",
+    image: "/concepts/sonic-clinical/radiology.webp",
+    alt: "Illustrative torso and radiology scan slices",
   },
   {
-    eyebrow: "Laboratory services",
-    title: "Routine test enquiries",
-    text: "Ask about available laboratory tests and receive centre-confirmed preparation guidance.",
-    image: "/concepts/sonic/laboratory-testing.svg",
-    alt: "Laboratory professional preparing diagnostic samples",
+    eyebrow: "Heart imaging",
+    title: "2D echocardiography",
+    text: "Check appointment availability and confirm any preparation or referral documents required.",
+    image: "/concepts/sonic-clinical/echocardiography.webp",
+    alt: "Illustrative heart and echocardiography screen",
   },
   {
-    eyebrow: "Proposed convenience service",
-    title: "Home collection requests",
-    text: "Request a preferred date, then let the centre confirm eligibility, area and availability.",
-    image: "/concepts/sonic/home-sample-collection.svg",
-    alt: "Healthcare professional discussing home sample collection with a family",
+    eyebrow: "Doppler imaging",
+    title: "3D & 4D Doppler imaging",
+    text: "Ask the centre about scheduling, preparation and the right time to arrive.",
+    image: "/concepts/sonic-clinical/doppler-imaging.webp",
+    alt: "Illustrative heart and Doppler blood-flow visualization",
+  },
+  {
+    eyebrow: "Specialised scan",
+    title: "Renal Doppler",
+    text: "Confirm availability and follow preparation guidance from your doctor or the centre.",
+    image: "/concepts/sonic-clinical/renal-doppler.webp",
+    alt: "Illustrative kidneys and renal blood-flow visualization",
+  },
+  {
+    eyebrow: "Screening enquiry",
+    title: "Prenatal screening",
+    text: "Contact the centre for considerate guidance about timing, preparation and documents.",
+    image: "/concepts/sonic-clinical/prenatal-screening.webp",
+    alt: "Illustrative prenatal ultrasound visualization",
+  },
+  {
+    eyebrow: "Lab enquiry",
+    title: "Laboratory tests",
+    text: "Ask about available routine tests and receive centre-confirmed preparation guidance.",
+    image: "/concepts/sonic-clinical/laboratory-tests.webp",
+    alt: "Illustrative laboratory sample and microscope visualization",
   },
 ];
 
@@ -185,7 +206,7 @@ export default function SonicPatientPortal() {
 
       <Reminder appointment={appointment} onClear={clearAppointment} />
 
-      <section className="portal-services" id="portal-services"><div className="portal-section-heading"><div><p className="portal-eyebrow">Explore services</p><h2>Know where to start.</h2></div><p>Clear, patient-friendly explanations with a direct path to request a preferred visit or contact the centre.</p></div><div className="portal-service-grid">{serviceHighlights.map(item => <article key={item.title}><figure><img src={item.image} alt={item.alt} width="1200" height="900" loading="lazy" /></figure><div><p className="portal-eyebrow">{item.eyebrow}</p><h3>{item.title}</h3><p>{item.text}</p><a href="#portal-book">Plan a visit <span>→</span></a></div></article>)}</div></section>
+      <section className="portal-services" id="portal-services"><div className="portal-section-heading"><div><p className="portal-eyebrow">Explore services</p><h2>Know where to start.</h2></div><p>Six clear service categories with educational illustrations and a direct path to plan a preferred visit or contact the centre.</p></div><div className="portal-service-grid">{serviceHighlights.map((item, index) => <article key={item.title}><figure><img src={item.image} alt={item.alt} width="1536" height="1024" loading="lazy" /><figcaption>Illustrative service visual</figcaption></figure><div><span className="portal-service-number">{String(index + 1).padStart(2, "0")}</span><p className="portal-eyebrow">{item.eyebrow}</p><h3>{item.title}</h3><p>{item.text}</p><a href="#portal-book">Plan a visit <span>→</span></a></div></article>)}</div></section>
 
       <section className="portal-home"><figure><img src="/concepts/sonic/home-sample-collection.svg" alt="Healthcare professional discussing home collection with a patient and family member" width="1400" height="934" loading="lazy" /><figcaption>Proposed home collection service</figcaption></figure><div><p className="portal-eyebrow">Care beyond the centre</p><h2>Request collection from home.</h2><p>For suitable laboratory tests, patients could share a preferred date and receive confirmation about eligibility, preparation and service area.</p><ol><li><span>01</span><div><b>Send a request</b><p>Choose a test, date and preferred time.</p></div></li><li><span>02</span><div><b>Receive confirmation</b><p>The centre confirms whether home collection is available.</p></div></li><li><span>03</span><div><b>Keep your reminder</b><p>Print or save the visit information for easy reference.</p></div></li></ol><a className="portal-primary" href="#portal-book">Request home collection <span>→</span></a><small>Concept feature only. The centre must approve and operate this service before launch.</small></div></section>
 
@@ -196,4 +217,3 @@ export default function SonicPatientPortal() {
     <footer className="portal-footer"><span>Concept Project · Not client work · No real patient account is created</span><a href="/">Return to VNS Solutions ↑</a></footer>
   </div>;
 }
-
