@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./Concepts.css";
 import SonicPatientPortal from "./SonicPatientPortal";
 
@@ -65,6 +65,7 @@ function ClinicConcept() {
 function SonicDiagnosticsConcept() {
   const [requestType, setRequestType] = useState("centre");
   const [requestState, setRequestState] = useState("idle");
+  const [menuOpen, setMenuOpen] = useState(false);
   const services = [
     ["Imaging & radiology","Ask about available scans and the preparation required before your visit.","Scan enquiry"],
     ["2D echocardiography","Check appointment availability and what records or referral documents to carry.","Heart imaging"],
@@ -94,9 +95,23 @@ function SonicDiagnosticsConcept() {
     event.preventDefault();
     setRequestState("sent");
   }
+  useEffect(() => {
+    function closeMenu(event) {
+      if (event.key === "Escape" || (event.type === "click" && !event.target.closest(".sonic-menu-wrap"))) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("click", closeMenu);
+    document.addEventListener("keydown", closeMenu);
+    return () => {
+      document.removeEventListener("click", closeMenu);
+      document.removeEventListener("keydown", closeMenu);
+    };
+  }, []);
+  const closeMenu = () => setMenuOpen(false);
   return <div className="concept sonic-concept">
     <div className="sonic-proposal-bar"><a href="/" aria-label="Return to VNS Solutions">VNS<span>.</span></a><p><b>Independent website concept</b><span>Public information only · For discussion with Sonic Diagnostics</span></p><a href="/#contact">Created by VNS Solutions ↗</a></div>
-    <header className="sonic-nav"><a href="#sonic-top" className="sonic-logo"><i aria-hidden="true"><b/></i><span>SONIC <small>DIAGNOSTICS</small></span></a><nav aria-label="Sonic concept navigation"><a href="#sonic-services">Services</a><a href="#sonic-home">Home collection</a><a href="#sonic-guide">Patient guide</a><a href="#sonic-visit">Visit</a></nav><a className="sonic-call" href="tel:+918128613278">Call now <span>→</span></a></header>
+    <header className="sonic-nav"><a href="#sonic-top" className="sonic-logo"><i aria-hidden="true"><b/></i><span>SONIC <small>DIAGNOSTICS</small></span></a><nav aria-label="Sonic concept navigation"><a href="#sonic-services">Services</a><a href="#sonic-home">Home collection</a><a href="#sonic-guide">Patient guide</a><a href="#sonic-visit">Visit</a></nav><a className="sonic-call" href="tel:+918128613278">Call now <span>→</span></a><div className="sonic-menu-wrap"><button className="sonic-menu-trigger" type="button" aria-label={menuOpen ? "Close quick navigation" : "Open quick navigation"} aria-expanded={menuOpen} aria-controls="sonic-quick-menu" onClick={() => setMenuOpen(current => !current)}><i/><i/><i/></button><div className={`sonic-menu ${menuOpen ? "open" : ""}`} id="sonic-quick-menu" aria-hidden={!menuOpen}><p>Quick navigation</p><a href="#sonic-top" onClick={closeMenu}><span aria-hidden="true">⌂</span><b>Home</b></a><a href="#sonic-services" onClick={closeMenu}><span aria-hidden="true">✦</span><b>Services</b></a><a href="#sonic-book" onClick={closeMenu}><span aria-hidden="true">□</span><b>Appointment</b></a><a href="#sonic-home" onClick={closeMenu}><span aria-hidden="true">＋</span><b>Home collection</b></a><a href="#sonic-guide" onClick={closeMenu}><span aria-hidden="true">≡</span><b>Patient guide</b></a><a href="#sonic-visit" onClick={closeMenu}><span aria-hidden="true">⌖</span><b>Location</b></a><a className="sonic-menu-signin" href="/concepts/sonic-diagnostics-portal" onClick={closeMenu}><span aria-hidden="true">→</span><b>Sign in</b><small>Patient portal</small></a></div></div></header>
     <main id="sonic-top">
       <section className="sonic-hero">
         <div className="sonic-hero-copy"><p className="sonic-eyebrow">Diagnostic services in Hanamkonda</p><h1>Clear answers.<br/><em>Simple appointments.</em></h1><p className="sonic-lead">Find the right diagnostic service, understand the next step and contact the centre—all from one calm, mobile-friendly experience.</p><div className="sonic-actions"><a className="sonic-primary" href="#sonic-book">Request an appointment <span>→</span></a><a className="sonic-secondary" href="tel:+918128613278">Call 08128 613278</a></div><div className="sonic-hero-facts"><span><b>Monday–Saturday</b>9:00 AM–9:00 PM</span><span><b>Convenient location</b>Near Old RTO Office</span></div></div>
