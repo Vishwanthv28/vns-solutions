@@ -159,12 +159,12 @@ h2{font-size:clamp(34px,4vw,52px);font-weight:800;line-height:1.1;letter-spacing
   .premium-cursor-active,.premium-cursor-active a,.premium-cursor-active button,.premium-cursor-active .service-card{cursor:none!important}
   .premium-cursor-active input,.premium-cursor-active textarea{cursor:text!important}
   .cursor-dot,.cursor-ring{position:fixed;left:0;top:0;pointer-events:none;opacity:0;will-change:transform}
-  .cursor-dot{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:var(--violet);transition:opacity .18s ease}
+  .cursor-dot{display:none}
   .cursor-ring{width:0;height:0;transition:opacity .18s ease}
-  .cursor-ring:before{content:"";position:absolute;left:0;top:0;width:34px;height:34px;border:1px solid color-mix(in srgb,var(--violet) 72%,transparent);border-radius:50%;background:color-mix(in srgb,var(--paper) 5%,transparent);backdrop-filter:blur(2px);transform:translate(-50%,-50%);transition:width .22s ease,height .22s ease,background .22s ease,border-color .22s ease}
+  .cursor-ring:before{content:"";position:absolute;left:0;top:0;width:8px;height:8px;border:0;border-radius:1px;background:var(--violet);box-shadow:0 2px 10px color-mix(in srgb,var(--violet) 42%,transparent);transform:translate(-50%,-50%) rotate(45deg);transition:width .18s ease,height .18s ease,transform .18s ease,background .18s ease}
   .cursor-dot.is-visible,.cursor-ring.is-visible{opacity:1}
-  .cursor-ring.is-active:before{width:52px;height:52px;background:color-mix(in srgb,var(--violet) 9%,transparent);border-color:var(--violet)}
-  .cursor-ring.is-project:before{width:70px;height:70px;background:color-mix(in srgb,var(--violet) 88%,transparent);border-color:transparent;backdrop-filter:blur(5px)}
+  .cursor-ring.is-active:before{width:12px;height:12px;background:var(--violet-2);transform:translate(-50%,-50%) rotate(45deg)}
+  .cursor-ring.is-project:before{width:56px;height:28px;border-radius:3px;background:var(--violet);box-shadow:0 8px 24px rgba(42,31,87,.22);transform:translate(-50%,-50%) rotate(0)}
   .cursor-ring span{position:absolute;left:0;top:0;z-index:1;color:#fff;font:500 9px "DM Mono",monospace;letter-spacing:.12em;transform:translate(-50%,-50%)}
 }
 
