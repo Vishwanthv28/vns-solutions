@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { brand, faqs, services, work } from "./siteData";
 import AIConsultant from "./components/AIConsultant/AIConsultant";
 
@@ -8,6 +8,121 @@ function ThemeButton({ theme, onClick }) {
     <span className="theme-track"><span className="theme-knob">{theme === "dark" ? "☾" : "☀"}</span></span>
     <span className="theme-label">{theme === "dark" ? "Dark" : "Light"}</span>
   </button>;
+}
+
+function PremiumMotionLayer() {
+  const dotRef = useRef(null);
+  const ringRef = useRef(null);
+
+  useEffect(() => {
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    if (!finePointer.matches || reducedMotion.matches) return;
+
+    const dot = dotRef.current;
+    const ring = ringRef.current;
+    const hero = document.querySelector(".hero");
+    const servicesSection = document.querySelector("#services");
+    const magneticButtons = [...document.querySelectorAll(".button")];
+    let pointerX = -100;
+    let pointerY = -100;
+    let ringX = -100;
+    let ringY = -100;
+    let animationFrame;
+
+    document.body.classList.add("premium-cursor-active");
+
+    const animateCursor = () => {
+      ringX += (pointerX - ringX) * 0.18;
+      ringY += (pointerY - ringY) * 0.18;
+      ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+      animationFrame = requestAnimationFrame(animateCursor);
+    };
+
+    const handlePointerMove = (event) => {
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      dot.style.transform = `translate3d(${pointerX}px, ${pointerY}px, 0)`;
+      dot.classList.add("is-visible");
+      ring.classList.add("is-visible");
+    };
+
+    const handlePointerOver = (event) => {
+      const interactive = event.target.closest("a, button, .service-card");
+      const project = event.target.closest(".work-visual");
+      ring.classList.toggle("is-active", Boolean(interactive));
+      ring.classList.toggle("is-project", Boolean(project));
+      ring.querySelector("span").textContent = project ? "VIEW" : "";
+    };
+
+    const handlePointerLeave = () => {
+      dot.classList.remove("is-visible");
+      ring.classList.remove("is-visible", "is-active", "is-project");
+    };
+
+    const handleHeroMove = (event) => {
+      const rect = hero.getBoundingClientRect();
+      hero.style.setProperty("--hero-x", `${((event.clientX - rect.left) / rect.width - 0.5) * 12}px`);
+      hero.style.setProperty("--hero-y", `${((event.clientY - rect.top) / rect.height - 0.5) * 12}px`);
+    };
+
+    const resetHero = () => {
+      hero.style.setProperty("--hero-x", "0px");
+      hero.style.setProperty("--hero-y", "0px");
+    };
+
+    const handleServicesMove = (event) => {
+      const rect = servicesSection.getBoundingClientRect();
+      servicesSection.style.setProperty("--spot-x", `${event.clientX - rect.left}px`);
+      servicesSection.style.setProperty("--spot-y", `${event.clientY - rect.top}px`);
+    };
+
+    const magneticHandlers = magneticButtons.map((button) => {
+      const move = (event) => {
+        const rect = button.getBoundingClientRect();
+        const x = (event.clientX - rect.left - rect.width / 2) * 0.12;
+        const y = (event.clientY - rect.top - rect.height / 2) * 0.12;
+        button.style.setProperty("--magnetic-x", `${x}px`);
+        button.style.setProperty("--magnetic-y", `${y}px`);
+      };
+      const leave = () => {
+        button.style.setProperty("--magnetic-x", "0px");
+        button.style.setProperty("--magnetic-y", "0px");
+      };
+      button.addEventListener("pointermove", move);
+      button.addEventListener("pointerleave", leave);
+      return { button, move, leave };
+    });
+
+    document.addEventListener("pointermove", handlePointerMove);
+    document.addEventListener("pointerover", handlePointerOver);
+    document.documentElement.addEventListener("mouseleave", handlePointerLeave);
+    hero?.addEventListener("pointermove", handleHeroMove);
+    hero?.addEventListener("pointerleave", resetHero);
+    servicesSection?.addEventListener("pointermove", handleServicesMove);
+    animationFrame = requestAnimationFrame(animateCursor);
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      document.body.classList.remove("premium-cursor-active");
+      document.removeEventListener("pointermove", handlePointerMove);
+      document.removeEventListener("pointerover", handlePointerOver);
+      document.documentElement.removeEventListener("mouseleave", handlePointerLeave);
+      hero?.removeEventListener("pointermove", handleHeroMove);
+      hero?.removeEventListener("pointerleave", resetHero);
+      servicesSection?.removeEventListener("pointermove", handleServicesMove);
+      magneticHandlers.forEach(({ button, move, leave }) => {
+        button.removeEventListener("pointermove", move);
+        button.removeEventListener("pointerleave", leave);
+      });
+    };
+  }, []);
+
+  return <div className="premium-cursor" aria-hidden="true">
+    <div className="cursor-dot" ref={dotRef} />
+    <div className="cursor-ring" ref={ringRef}><span /></div>
+  </div>;
 }
 
 export default function App() {
@@ -71,6 +186,7 @@ export default function App() {
   }
 
   return <>
+    <PremiumMotionLayer />
     <a className="skip-link" href="#main-content">Skip to main content</a>
     <header className="nav-shell">
       <nav className="nav page-width" aria-label="Main navigation">
@@ -85,6 +201,7 @@ export default function App() {
     <main id="main-content">
       <span id="top" />
       <section className="hero page-width">
+        <div className="hero-ambient" aria-hidden="true"><span /><span /><span /></div>
         <div className="hero-copy">
           <p className="eyebrow"><span className="live-dot" /> Digital growth studio · India</p>
           <h1>A digital presence that feels <em>like your business.</em></h1>
@@ -107,8 +224,8 @@ export default function App() {
 
       <section className="section page-width solve"><p className="eyebrow">What we solve</p><div className="section-heading"><h2>Your website should make the next step <em>obvious.</em></h2><p>Local businesses do not need more features. They need a clear online presence that answers questions and makes it easy to enquire, book, or order.</p></div><div className="solve-grid"><article><span>01</span><h3>Hard to find online</h3><p>Clear pages and local-search foundations help nearby customers discover your business.</p></article><article><span>02</span><h3>Looks like everyone else</h3><p>A tailored visual system makes your business feel distinct, credible and ready to choose.</p></article><article><span>03</span><h3>Enquiries get missed</h3><p>Simple forms, email routing and optional automation keep important conversations moving.</p></article><article><span>04</span><h3>No clear next step</h3><p>Every page is built around a useful action: enquire, book, order or request a quote.</p></article></div></section>
 
-      <section className="section page-width" id="services"><p className="eyebrow">What we do</p><div className="section-heading"><h2>Digital work with a <em>human point of view.</em></h2><p>Each project starts with the customer action that matters to you. Then we build only what supports it.</p></div>
-        <div className="service-grid">{services.map((service) => <article className="service-card" key={service.number}><span className="service-number">{service.number}</span><h3>{service.title}</h3><p>{service.text}</p><div className="tag-row">{service.tags.map(tag => <span key={tag}>{tag}</span>)}</div></article>)}</div>
+      <section className="section page-width services-section" id="services"><div className="services-ambient" aria-hidden="true" /><p className="eyebrow">What we do</p><div className="section-heading"><h2>Digital work with a <em>human point of view.</em></h2><p>Each project starts with the customer action that matters to you. Then we build only what supports it.</p></div>
+        <div className="service-grid">{services.map((service) => <article className="service-card" key={service.number}><span className="service-accent" aria-hidden="true" /><div className="service-card-top"><span className="service-number">{service.number}</span><span className="service-arrow" aria-hidden="true">↗</span></div><h3>{service.title}</h3><p>{service.text}</p><div className="tag-row">{service.tags.map(tag => <span key={tag}>{tag}</span>)}</div></article>)}</div>
       </section>
 
       <section className="section surface-section" id="work"><div className="page-width"><p className="eyebrow">What we can build</p><div className="section-heading"><h2>Useful technology, built around real work.</h2><p>A few project ideas to start the conversation. These illustrate what we can build; they are not client case studies.</p></div>
