@@ -25,3 +25,23 @@ export const faqs = [
   ["Can you improve an existing website?", "Yes. VNS Solutions can redesign pages, improve mobile usability, fix conversion paths or add an enquiry-response workflow."],
   ["What can an AI voice or WhatsApp agent do?", "It can follow an approved business script, answer defined questions, capture lead details, send useful follow-up and hand complex conversations to a person. We design it around one clear business job."],
 ];
+
+export const agentSystem = {
+  modules: [
+    { title: "Voice lead agent", text: "Calls or responds to new enquiries, understands the requirement and captures the details your team needs." },
+    { title: "AI receptionist", text: "Handles approved incoming questions about services, availability, location or next steps, then routes complex conversations to a person." },
+    { title: "WhatsApp sales assistant", text: "Sends the right brochure, map, menu, catalogue, confirmation or follow-up message at the right moment." },
+    { title: "Reminder & reactivation agent", text: "Supports appointment reminders, site-visit follow-up, renewals, service updates and missed-lead recovery." },
+    { title: "Owner dashboard & handoff", text: "Keeps the business in control with lead status, conversation notes, approved actions and human escalation." },
+  ],
+  industries: [
+    { title: "Real estate", flow: "Qualify budget, location and property need; book a site visit; send project details on WhatsApp." },
+    { title: "Clinics", flow: "Answer approved service questions; schedule appointments; send location and preparation reminders." },
+    { title: "Restaurants", flow: "Manage reservations, catering enquiries, menu sharing and event-booking follow-up." },
+    { title: "Gyms", flow: "Respond to membership leads; book a trial or consultation; follow up after the visit." },
+    { title: "Salons", flow: "Handle service enquiries, appointment requests, package follow-up and reminder messages." },
+    { title: "Boutiques", flow: "Share catalogues, answer availability questions and guide customers toward an order or store visit." },
+    { title: "Builders", flow: "Capture buyer requirements, share project information and route serious enquiries to the sales team." },
+    { title: "Hotels", flow: "Support stay enquiries, group-booking requests, local information and booking follow-up." },
+  ],
+};
