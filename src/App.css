@@ -217,3 +217,29 @@ h2{font-size:clamp(34px,4vw,52px);font-weight:800;line-height:1.1;letter-spacing
   .service-card,.service-accent,.service-arrow,.service-card .tag-row span,.work-visual{transition:none!important;animation:none!important}
   .service-card:hover,.work-card:hover .work-visual{transform:none!important}
 }
+
+
+/* VNS AI Growth System: a calm, practical cross-industry service directory. */
+.agent-system-section{background:var(--inverse);color:var(--inverse-text)}
+.agent-system-section h2{color:var(--inverse-text)}
+.agent-system-section .section-heading p{color:#b9b9c5}
+.agent-system-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:1px;border:1px solid #35343d;background:#35343d}
+.agent-system-core,.agent-industry-directory{padding:clamp(24px,3vw,42px);background:var(--inverse)}
+.agent-system-core{background:linear-gradient(145deg,#1b1923,#111114)}
+.agent-system-section .mini-label{color:#b9b9c5}
+.agent-module-list{margin-top:24px;border-top:1px solid #35343d}
+.agent-module-list article{display:grid;grid-template-columns:42px 1fr;gap:14px;padding:18px 0;border-bottom:1px solid #35343d}
+.agent-module-list article>span,.agent-industry-grid article>span{color:var(--violet-2);font:11px "DM Mono",monospace}
+.agent-module-list h3,.agent-industry-grid h3{margin:0 0 5px;color:#fff;font-size:18px;letter-spacing:-.035em}
+.agent-module-list p,.agent-industry-grid p{margin:0;color:#b9b9c5;font-size:13px;line-height:1.65}
+.agent-system-note{margin:24px 0 0;color:#d8d5df;font-size:14px;line-height:1.7}
+.agent-industry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:24px;border-top:1px solid #35343d;border-left:1px solid #35343d}
+.agent-industry-grid article{min-height:152px;padding:18px;border-right:1px solid #35343d;border-bottom:1px solid #35343d}
+.agent-industry-grid article>span{display:block;margin-bottom:28px}
+.agent-system-cta{display:flex;align-items:center;justify-content:space-between;gap:28px;padding:26px 0 0}
+.agent-system-cta p{max-width:680px;margin:0;color:#d8d5df;font-size:15px;line-height:1.7}
+.agent-system-cta b{color:#fff}
+.agent-system-cta .button{flex:none;background:#fff;color:#17161b}
+.agent-system-cta .button:hover{background:var(--violet-2)}
+@media(max-width:850px){.agent-system-layout{grid-template-columns:1fr}.agent-system-cta{align-items:flex-start;flex-direction:column}}
+@media(max-width:520px){.agent-industry-grid{grid-template-columns:1fr}.agent-industry-grid article{min-height:0}.agent-system-core,.agent-industry-directory{padding:22px}.agent-system-cta{gap:20px}.agent-system-cta .button{width:100%;justify-content:center}}
