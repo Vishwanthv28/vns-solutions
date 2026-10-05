@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { brand, faqs, services, work } from "./siteData";
+import { agentSystem, brand, faqs, services, work } from "./siteData";
 import AIConsultant from "./components/AIConsultant/AIConsultant";
 
 
@@ -192,7 +192,7 @@ export default function App() {
       <nav className="nav page-width" aria-label="Main navigation">
         <a className="logo" href="#top" aria-label="VNS Solutions home"><span>V</span>NS<span className="dot">.</span></a>
         <div className={`nav-links ${menuOpen ? "open" : ""}`} id="primary-navigation">
-          <a href="#work" onClick={() => setMenuOpen(false)}>Capabilities</a><a href="#process" onClick={() => setMenuOpen(false)}>Process</a><a href="#services" onClick={() => setMenuOpen(false)}>Services</a><a href="#industries" onClick={() => setMenuOpen(false)}>Industries</a><a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
+          <a href="#ai-agents" onClick={() => setMenuOpen(false)}>AI agents</a><a href="#work" onClick={() => setMenuOpen(false)}>Capabilities</a><a href="#process" onClick={() => setMenuOpen(false)}>Process</a><a href="#services" onClick={() => setMenuOpen(false)}>Services</a><a href="#industries" onClick={() => setMenuOpen(false)}>Industries</a><a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
         </div>
         <div className="nav-actions"><ThemeButton theme={theme} onClick={() => setTheme(theme === "light" ? "dark" : "light")} /><a className="button button-small" href="#contact">Book a discovery <span>→</span></a><button className="menu-button" type="button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen} aria-controls="primary-navigation">{menuOpen ? "×" : "☰"}</button></div>
       </nav>
@@ -226,6 +226,28 @@ export default function App() {
 
       <section className="section page-width services-section" id="services"><div className="services-ambient" aria-hidden="true" /><p className="eyebrow">What we do</p><div className="section-heading"><h2>Digital growth systems with a <em>human point of view.</em></h2><p>Each project starts with the customer action that matters to you. Then we connect the website, response and follow-up around it.</p></div>
         <div className="service-grid">{services.map((service) => <article className="service-card" key={service.number}><span className="service-accent" aria-hidden="true" /><div className="service-card-top"><span className="service-number">{service.number}</span><span className="service-arrow" aria-hidden="true">↗</span></div><h3>{service.title}</h3><p>{service.text}</p><div className="tag-row">{service.tags.map(tag => <span key={tag}>{tag}</span>)}</div></article>)}</div>
+      </section>
+
+      <section className="section agent-system-section" id="ai-agents">
+        <div className="page-width">
+          <p className="eyebrow">VNS AI Growth System</p>
+          <div className="section-heading">
+            <h2>One connected agent system. <em>Configured for your industry.</em></h2>
+            <p>VNS does not sell one generic chatbot. We connect the right response, follow-up and handoff flow to the way your business receives customers.</p>
+          </div>
+          <div className="agent-system-layout">
+            <div className="agent-system-core">
+              <p className="mini-label">WHAT THE SYSTEM CAN DO</p>
+              <div className="agent-module-list">{agentSystem.modules.map((module, index) => <article key={module.title}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{module.title}</h3><p>{module.text}</p></div></article>)}</div>
+              <p className="agent-system-note">Every workflow uses approved information, records the right lead details and gives customers a clear path to a person when needed.</p>
+            </div>
+            <div className="agent-industry-directory">
+              <p className="mini-label">CONFIGURED FOR YOUR BUSINESS</p>
+              <div className="agent-industry-grid">{agentSystem.industries.map((industry, index) => <article key={industry.title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{industry.title}</h3><p>{industry.flow}</p></article>)}</div>
+            </div>
+          </div>
+          <div className="agent-system-cta"><p><b>Website, voice, WhatsApp and follow-up—working as one customer-response system.</b> Start with the one part of the journey where your business is losing time or leads.</p><a className="button" href="#contact">Plan your agent workflow <span>→</span></a></div>
+        </div>
       </section>
 
       <section className="section surface-section" id="work"><div className="page-width"><p className="eyebrow">What we can build</p><div className="section-heading"><h2>Useful technology, built around real work.</h2><p>A few project ideas to start the conversation. These illustrate what we can build; they are not client case studies.</p></div>
