@@ -2,7 +2,7 @@ export const consultantQuestions = [
   {
     id: "businessType",
     label: "First, what kind of business or project are you planning?",
-    help: "A short answer is enough—for example: clinic, restaurant, consultancy or online store.",
+    help: "A short answer is enough—for example: clinic, restaurant, consultancy or real-estate project.",
     type: "text",
     placeholder: "Tell us about your business",
   },
@@ -16,7 +16,7 @@ export const consultantQuestions = [
     id: "mainGoal",
     label: "What is the most important result you want?",
     type: "single",
-    options: ["More enquiries", "More bookings", "More orders or sales", "Better customer support", "Less repetitive work"],
+    options: ["More enquiries", "More bookings", "More orders or sales", "Faster lead response", "Less repetitive work"],
   },
   {
     id: "customers",
@@ -30,7 +30,7 @@ export const consultantQuestions = [
     label: "Which capabilities may help your project?",
     help: "Choose one or more. This does not create a final scope.",
     type: "multiple",
-    options: ["New business website", "Website redesign", "Enquiry or booking flow", "FAQ assistant", "Email or WhatsApp follow-up", "Business workflow automation"],
+    options: ["New business website", "Website redesign", "Enquiry or booking flow", "AI voice agent", "WhatsApp follow-up", "Business workflow automation"],
   },
   {
     id: "timeline",
@@ -56,10 +56,10 @@ export function recommendVNSServices(answers) {
   if (answers.websiteStatus !== "My website works well" || capabilities.some(item => ["New business website", "Website redesign", "Enquiry or booking flow"].includes(item))) {
     recommendations.add("Conversion websites");
   }
-  if (answers.mainGoal === "Better customer support" || capabilities.includes("FAQ assistant")) {
-    recommendations.add("AI customer support");
+  if (answers.mainGoal === "Faster lead response" || capabilities.some(item => ["AI voice agent", "WhatsApp follow-up"].includes(item))) {
+    recommendations.add("AI voice & WhatsApp agents");
   }
-  if (answers.mainGoal === "Less repetitive work" || capabilities.some(item => ["Email or WhatsApp follow-up", "Business workflow automation"].includes(item))) {
+  if (answers.mainGoal === "Less repetitive work" || capabilities.includes("Business workflow automation")) {
     recommendations.add("Business automation");
   }
   if (!recommendations.size) recommendations.add("Conversion websites");

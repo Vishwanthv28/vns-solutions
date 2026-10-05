@@ -31,7 +31,7 @@ function ProjectSummary({ answers }) {
   return <div className="ai-summary" aria-live="polite">
     <p className="ai-kicker">Project requirement preview</p>
     <h3>Your starting brief is ready.</h3>
-    <p>This is a rule-based Layer 1 preview—not an AI-generated recommendation yet.</p>
+    <p>This is a guided starting brief. It helps organise the project before a VNS consultation.</p>
     <dl>
       <div><dt>Business</dt><dd>{answers.businessType}</dd></div>
       <div><dt>Website</dt><dd>{answers.websiteStatus}</dd></div>
@@ -124,8 +124,8 @@ export default function AIConsultant({ open, onClose }) {
   return <div className="ai-consultant-layer" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
     <section className="ai-consultant-panel" ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="ai-consultant-title">
       <header className="ai-consultant-header">
-        <div><span className="ai-status-dot" aria-hidden="true" /><div><p>VNS AI Project Consultant</p><small>Layer 1 · Guided UI demonstration</small></div></div>
-        <button className="ai-close" type="button" onClick={onClose} aria-label="Close AI Project Consultant">×</button>
+        <div><span className="ai-status-dot" aria-hidden="true" /><div><p>VNS Project Planner</p><small>Guided project brief · Preview</small></div></div>
+        <button className="ai-close" type="button" onClick={onClose} aria-label="Close Project Planner">×</button>
       </header>
 
       <div className="ai-progress" aria-label={finished ? "Questionnaire complete" : `Question ${step + 1} of ${consultantQuestions.length}`}><span style={{ width: `${finished ? 100 : ((step + 1) / consultantQuestions.length) * 100}%` }} /></div>
