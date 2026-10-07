@@ -3,7 +3,6 @@ const MAX_BODY_BYTES = 20000;
 
 function clean(value, maxLength) {
   if (typeof value !== "string") return "";
-
   const trimmed = value.trim();
   return trimmed.length <= maxLength ? trimmed : "";
 }
@@ -28,7 +27,6 @@ export default async function handler(request, response) {
     });
   }
 
-  // Reject invalid origins without throwing an unhandled error.
   const origin = request.headers.origin;
   const host =
     request.headers["x-forwarded-host"] || request.headers.host;
@@ -80,7 +78,6 @@ export default async function handler(request, response) {
     });
   }
 
-  // Bots commonly fill hidden fields that people never see.
   if (body.website) {
     return response.status(200).json({ ok: true });
   }
@@ -110,7 +107,7 @@ export default async function handler(request, response) {
     });
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = (process.env.RESEND_API_KEY || "").trim();
 
   if (!apiKey) {
     return response.status(503).json({
@@ -152,10 +149,22 @@ export default async function handler(request, response) {
     );
 
     if (!resendResponse.ok) {
-      console.error(
-        "Resend rejected contact email",
-        resendResponse.status
-      );
+      const resendError = await resendResponse
+        .json()
+        .catch(() => ({}));
+
+      const safeMessage = String(
+        resendError?.message || "No error details"
+      )
+        .split(apiKey)
+        .join("[REDACTED]")
+        .replace(/re_[A-Za-z0-9_]+/g, "[REDACTED]")
+        .slice(0, 1000);
+
+      console.error("Resend rejected contact email", {
+        status: resendResponse.status,
+        message: safeMessage,
+      });
 
       return response.status(502).json({
         message:
