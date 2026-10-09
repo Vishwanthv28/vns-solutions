@@ -130,6 +130,7 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
   const [formState, setFormState] = useState("idle");
+  const [formError, setFormError] = useState("");
   const [consultantOpen, setConsultantOpen] = useState(false);
 
   useEffect(() => {
