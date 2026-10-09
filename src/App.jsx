@@ -162,28 +162,42 @@ export default function App() {
   const messageLink = brand.whatsapp ? `https://wa.me/${brand.whatsapp}?text=${encodeURIComponent("Hi VNS Solutions, I would like to discuss a project.")}` : `mailto:${brand.email}?subject=${encodeURIComponent("Project enquiry for VNS Solutions")}`;
 
   async function handleSubmit(event) {
-    event.preventDefault();
-    const formElement = event.currentTarget;
-    const form = new FormData(formElement);
-    setFormState("sending");
+  event.preventDefault();
+  if (formState === "sending") return;
 
-    try {
-      const result = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(Object.fromEntries(form.entries())),
-      });
-      const data = await result.json();
+  const formElement = event.currentTarget;
+  const form = new FormData(formElement);
 
-      if (!result.ok) throw new Error(data.message || "Unable to send enquiry.");
+  setFormError("");
+  setFormState("sending");
 
-      formElement.reset();
-      setFormState("sent");
-    } catch (error) {
-      console.error("Enquiry submission failed", error);
+  const fallback =
+    "We could not send your enquiry. Please email vnsolutions28@gmail.com directly.";
+
+  try {
+    const result = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.fromEntries(form.entries())),
+    });
+
+    const data = await result.json().catch(() => null);
+
+    if (!result.ok || data?.ok !== true) {
+      setFormError(
+        typeof data?.message === "string" ? data.message : fallback
+      );
       setFormState("error");
+      return;
     }
+
+    formElement.reset();
+    setFormState("sent");
+  } catch {
+    setFormError(fallback);
+    setFormState("error");
   }
+}
 
   return <>
     <PremiumMotionLayer />
@@ -232,15 +246,121 @@ export default function App() {
         <div className="work-grid">{work.map((project, index) => <article className={`work-card work-${index + 1}`} key={project.title}><a className="work-visual" href={project.href} aria-label={`View ${project.title}`}><img src={project.image} alt={project.imageAlt} loading="lazy" width="1348" height="926" /><span>{String(index + 1).padStart(2, "0")}</span></a><p className="work-type">{project.type}</p><h3>{project.title}</h3><p>{project.text}</p><div className="tag-row">{project.tags.map(tag => <span key={tag}>{tag}</span>)}</div><a href={project.href} className="work-link">View concept project <span>→</span></a></article>)}</div></div>
       </section>
 
-      <section className="section page-width" id="process"><p className="eyebrow">How we work</p><div className="section-heading"><h2>A simple, visible process.</h2><p>No confusing handoff. You know what is happening, what you need to approve and what comes next.</p></div><div className="process-grid">{[["01", "Discover", "We discuss your business, your customers and the one result the project should achieve."], ["02", "Plan", "You receive a written scope, a clear quote and a design direction before building starts."], ["03", "Build", "We create, test and refine the experience across phone, tablet and desktop."], ["04", "Launch", "The final website is launched in your name, with a handover and support plan."]].map(([n,t,p]) => <div className="process-step" key={n}><span>{n}</span><h3>{t}</h3><p>{p}</p></div>)}</div></section>
+      <section className="section page-width" id="process"><p className="eyebrow">How we work</p><div className="section-heading"><h2>A simple, visible process.</h2><p>No confusing handoff. You know what is happening, what you need to approve and what comes next.</p></div><div className="process-grid">{[["01", "Discover", "We discuss your business, your customers and the one result the project should achieve."], ["02", "Plan", "You receive a written scope, a clear quote and a design direction before building starts."], ["03", "Build", "We create, test and refine the experience across phone, tablet and desktop."], ["04", "Launch", "The final website is launched in your name, with a handover and support plan."]].map(([n, t, p]) => <div className="process-step" key={n}><span>{n}</span><h3>{t}</h3><p>{p}</p></div>)}</div></section>
 
       <section className="section page-width promise"><div><p className="eyebrow">Why VNS</p><h2>Clarity builds trust.</h2></div><div className="promise-list"><p><b>Written scope.</b> You know what is included before work starts.</p><p><b>Client ownership.</b> Your domain, hosting and final code remain yours.</p><p><b>Practical AI.</b> We automate a defined task, never AI just for a trend.</p><p><b>Direct communication.</b> You speak directly with Vishwanth, who plans and builds your website.</p></div></section>
 
       <section className="section surface-section" id="faq"><div className="page-width faq-layout"><div><p className="eyebrow">Questions</p><h2>Before we start.</h2><p>Good projects begin with a shared understanding. Here are the essentials.</p></div><div className="faq-list">{faqs.map(([question, answer], index) => <div className="faq-item" key={question}><button onClick={() => setOpenFaq(index === openFaq ? -1 : index)} aria-expanded={index === openFaq}>{question}<span>{index === openFaq ? "−" : "+"}</span></button>{index === openFaq && <p>{answer}</p>}</div>)}</div></div></section>
 
-      <section className="contact-section" id="contact"><div className="page-width contact-layout"><div><p className="eyebrow"><span className="live-dot" /> Open for new projects</p><h2>Let’s build something that earns its place in your business.</h2><p>Tell me about your business and what you want to improve. I’ll reply through our company email with questions, practical options and the next step.</p><div className="next-steps" aria-label="What happens next"><p className="mini-label">WHAT HAPPENS NEXT</p><ol><li><span>01</span>Tell us about your business</li><li><span>02</span>Get clear next steps</li><li><span>03</span>Build and refine together</li></ol></div><a className="contact-email" href={`mailto:${brand.email}`}>{brand.email} <span>↗</span></a><p className="small-note">{brand.location}</p></div><form className="contact-form" onSubmit={handleSubmit}><div className="website-field" aria-hidden="true"><label>Website<input name="website" tabIndex="-1" autoComplete="off" /></label></div><label>Your name<input required name="name" autoComplete="name" placeholder="Your name" /></label><label>Email address<input required type="email" name="email" autoComplete="email" placeholder="you@business.com" /></label><label>Mobile / WhatsApp number<input required type="tel" name="phone" inputMode="tel" autoComplete="tel" minLength="7" placeholder="+91 98765 43210" /></label><label>Business / project type<input required name="business" autoComplete="organization" placeholder="Restaurant, clinic, studio…" /></label><label>What should this project achieve?<textarea required name="message" minLength="20" placeholder="More enquiries, bookings, direct orders, better follow-up…" rows="4" /></label><p className="form-privacy">Your details are used only to respond to your enquiry.</p><button className="button" type="submit" disabled={formState === "sending"}>{formState === "sending" ? "Sending…" : "Send enquiry"} <span>→</span></button>{formState === "sent" && <p className="form-success" role="status">Thank you. Your enquiry has been sent to VNS Solutions.</p>}{formState === "error" && <p className="form-error" role="alert">We could not send your enquiry. Please email vnsolutions28@gmail.com directly.</p>}</form></div></section>
+      <section className="contact-section" id="contact">
+  <div className="page-width contact-layout">
+    <div>
+      <p className="eyebrow">
+        <span className="live-dot" /> Open for new projects
+      </p>
+      <h2>Let’s build something that earns its place in your business.</h2>
+      <p>
+        Tell me about your business and what you want to improve.
+        I’ll reply through our company email with questions,
+        practical options and the next step.
+      </p>
+
+      <div className="next-steps" aria-label="What happens next">
+        <p className="mini-label">WHAT HAPPENS NEXT</p>
+        <ol>
+          <li><span>01</span>Tell us about your business</li>
+          <li><span>02</span>Get clear next steps</li>
+          <li><span>03</span>Build and refine together</li>
+        </ol>
+      </div>
+
+      <a className="contact-email" href={`mailto:${brand.email}`}>
+        {brand.email} <span>↗</span>
+      </a>
+      <p className="small-note">{brand.location}</p>
+    </div>
+
+    <form className="contact-form" onSubmit={handleSubmit}>
+      <div className="website-field" aria-hidden="true">
+        <label>
+          Website
+          <input name="website" tabIndex={-1} autoComplete="off" />
+        </label>
+      </div>
+
+      <label>
+        Your name
+        <input
+          required name="name" autoComplete="name"
+          minLength={2} maxLength={80} placeholder="Your name"
+        />
+      </label>
+
+      <label>
+        Email address
+        <input
+          required type="email" name="email" autoComplete="email"
+          maxLength={160} placeholder="you@business.com"
+        />
+      </label>
+
+      <label>
+        Mobile / WhatsApp number
+        <input
+          required type="tel" name="phone" inputMode="tel"
+          autoComplete="tel" minLength={7} maxLength={40}
+          placeholder="+91 98765 43210"
+        />
+      </label>
+
+      <label>
+        Business / project type
+        <input
+          required name="business" autoComplete="organization"
+          minLength={2} maxLength={120}
+          placeholder="Restaurant, clinic, studio…"
+        />
+      </label>
+
+      <label>
+        What should this project achieve?
+        <textarea
+          required name="message" minLength={20} maxLength={3000}
+          placeholder="More enquiries, bookings, direct orders, better follow-up…"
+          rows={4}
+        />
+      </label>
+
+      <p className="form-privacy">
+        Your details are used only to respond to your enquiry.
+      </p>
+
+      <button
+        className="button"
+        type="submit"
+        disabled={formState === "sending"}
+      >
+        {formState === "sending" ? "Sending…" : "Send enquiry"}
+        {" "}<span>→</span>
+      </button>
+
+      {formState === "sent" && (
+        <p className="form-success" role="status">
+          Thank you. Your enquiry has been sent to VNS Solutions.
+        </p>
+      )}
+
+      {formState === "error" && (
+        <p className="form-error" role="alert">
+          {formError}
+        </p>
+      )}
+    </form>
+  </div>
+</section>
     </main>
     <footer><section className="page-width founder-signature" id="studio" aria-labelledby="founder-name"><div><p className="founder-label">A note from the founder</p><h2 id="founder-name">Vishwanth<span aria-hidden="true">.</span></h2><p className="founder-role">Founder, VNS Solutions</p></div><div className="founder-message"><p>I work directly with each business. We’ll start with what your customers need, agree on a clear scope and review the website together as it takes shape.</p><a href="#contact">Tell me what you’re building <span aria-hidden="true">↗</span></a></div></section><div className="page-width footer-grid"><div><a className="logo" href="#top"><span>V</span>NS<span className="dot">.</span></a><p className="footer-note">Thoughtful websites and practical automation for businesses ready to grow.</p></div><div><p className="footer-label">Studio</p><a href="#studio">Meet the founder</a><a href="#work">Capabilities</a><a href="#process">Process</a><a href="#services">Services</a><a href="#faq">FAQ</a></div><div><p className="footer-label">Industries</p><a href="#industries">Restaurants & cafés</a><a href="#industries">Clinics & wellness</a><a href="#industries">Gyms & salons</a><a href="#industries">Real estate</a></div><div><p className="footer-label">Contact</p><a href={messageLink} target={brand.whatsapp ? "_blank" : undefined} rel="noreferrer">{brand.whatsapp ? "WhatsApp us ↗" : "Email us ↗"}</a><p className="footer-location">Based in India · Working with businesses across industries</p></div></div><div className="page-width footer-bottom"><p>© {new Date().getFullYear()} VNS Solutions. All rights reserved.</p><a href="#top">Back to top ↑</a></div></footer>
     <AIConsultant open={consultantOpen} onClose={() => setConsultantOpen(false)} />
   </>;
 }
+
