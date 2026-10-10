@@ -41,3 +41,23 @@
 .ai-consultant-panel .ai-lead-card .button b {
   color: inherit;
 }
+/* Black contact fields in dark mode */
+[data-theme="dark"] .ai-lead-card input:not([type="checkbox"]) {
+  background: #000;
+  color: #fff;
+  caret-color: #fff;
+  border-color: #555;
+  color-scheme: dark;
+}
+
+[data-theme="dark"] .ai-lead-card input::placeholder {
+  color: #aaa;
+}
+
+[data-theme="dark"] .ai-lead-card input:-webkit-autofill,
+[data-theme="dark"] .ai-lead-card input:-webkit-autofill:hover,
+[data-theme="dark"] .ai-lead-card input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #000 inset;
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+}
