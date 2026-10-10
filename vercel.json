@@ -1,5 +1,16 @@
 {
   "rewrites": [
-    { "source": "/concepts/:path*", "destination": "/index.html" }
-  ]
+    {
+      "source": "/concepts/:path*",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/consultant.js": {
+      "maxDuration": 60
+    },
+    "api/consultant-lead.js": {
+      "maxDuration": 60
+    }
+  }
 }
