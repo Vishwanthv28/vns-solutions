@@ -19,3 +19,25 @@
 .ai-lead-consent input { margin-top: 6px; flex: 0 0 auto; width: 18px; height: 18px; }
 .ai-lead-trap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .ai-lead-card small { overflow-wrap: anywhere; }
+/* Keep the lead card readable in both themes */
+.ai-consultant-panel .ai-lead-card {
+  background: var(--paper);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.ai-consultant-panel .ai-lead-card h4,
+.ai-consultant-panel .ai-lead-card p,
+.ai-consultant-panel .ai-lead-card label,
+.ai-consultant-panel .ai-lead-card small {
+  color: var(--ink);
+}
+
+.ai-consultant-panel .ai-lead-card .button {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.ai-consultant-panel .ai-lead-card .button b {
+  color: inherit;
+}
