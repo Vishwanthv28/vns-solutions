@@ -127,8 +127,8 @@ export default function App() {
     }
   }
 
-  return (
-    <>
+ return (
+  <>
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>

@@ -1,0 +1,97 @@
+/* Hide the previous cursor elements. */
+.premium-cursor {
+  display: none !important;
+}
+
+/* Attached directly to body, above the website and AI panel. */
+.vns-animated-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  z-index: 2147483647;
+  pointer-events: none !important;
+  opacity: 0;
+  will-change: transform;
+}
+
+.vns-animated-cursor.is-visible {
+  opacity: 1;
+}
+
+.vns-animated-cursor * {
+  pointer-events: none !important;
+}
+
+.vns-cursor-shape {
+  position: absolute;
+  top: -11px;
+  left: -11px;
+  width: 22px;
+  height: 22px;
+  box-sizing: border-box;
+  border: 2px solid #8461ff;
+  border-radius: 4px;
+  background: rgba(132, 97, 255, 0.12);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.75);
+  transform: rotate(45deg);
+  transition:
+    transform 120ms ease-out,
+    border-radius 120ms ease-out,
+    background-color 120ms ease-out;
+}
+
+.vns-cursor-dot {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #8461ff;
+}
+
+.vns-animated-cursor.is-interactive .vns-cursor-shape {
+  transform: rotate(90deg) scale(1.35);
+  border-radius: 50%;
+  background: rgba(132, 97, 255, 0.2);
+}
+
+.vns-animated-cursor.is-pressed .vns-cursor-shape {
+  transform: rotate(45deg) scale(0.8);
+}
+
+/* Hide the normal pointer only while the animated one is visible. */
+@media (hover: hover) and (pointer: fine) {
+  html.vns-cursor-visible,
+  html.vns-cursor-visible body,
+  html.vns-cursor-visible body * {
+    cursor: none !important;
+  }
+
+  html.vns-cursor-visible input,
+  html.vns-cursor-visible textarea,
+  html.vns-cursor-visible [contenteditable="true"] {
+    cursor: text !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vns-cursor-shape {
+    transition: none;
+  }
+}
+
+/* Reduce page rendering work. */
+.ai-consultant-layer,
+.nav-shell {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body:has(.ai-consultant-layer) .hero-ambient span,
+body:has(.ai-consultant-layer) .hero-wordmark span,
+body:has(.ai-consultant-layer) .marquee-track {
+  animation-play-state: paused !important;
+}
