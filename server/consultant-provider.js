@@ -6,6 +6,7 @@ import {
 export class ConsultantError extends Error {
   constructor(status, message) {
     super(message);
+    this.name = 'ConsultantError';
     this.status = status;
   }
 }
@@ -32,7 +33,10 @@ export const briefSchema = {
         type: 'object',
         additionalProperties: false,
         properties: {
-          name: { type: 'string', enum: VNS_SERVICES },
+          name: {
+            type: 'string',
+            enum: VNS_SERVICES,
+          },
           reason: { type: 'string' },
         },
         required: ['name', 'reason'],
@@ -87,6 +91,13 @@ export async function generateBrief(
     !key ||
     !/^[a-zA-Z0-9._-]+$/.test(model)
   ) {
+    console.error('[VNS AI] Configuration error', {
+      provider,
+      hasApiKey: Boolean(key),
+      hasModel: Boolean(model),
+      validModelFormat: /^[a-zA-Z0-9._-]+$/.test(model),
+    });
+
     throw new ConsultantError(
       503,
       'AI brief generation is not configured yet. Please contact VNS Solutions.',
@@ -109,10 +120,12 @@ export async function generateBrief(
           systemInstruction: {
             parts: [{ text: system }],
           },
-          contents: [{
-            role: 'user',
-            parts: [{ text: JSON.stringify(answers) }],
-          }],
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: JSON.stringify(answers) }],
+            },
+          ],
           generationConfig: {
             maxOutputTokens: 4096,
             thinkingConfig: {
@@ -126,6 +139,24 @@ export async function generateBrief(
     );
 
     if (!result.ok) {
+      const details = await result.json().catch(() => null);
+
+      // Redact the API key before logging provider diagnostics.
+      const providerMessage = String(
+        details?.error?.message || 'No error details',
+      )
+        .split(key)
+        .join('[REDACTED]')
+        .replace(/AIza[0-9A-Za-z_-]+/g, '[REDACTED]')
+        .slice(0, 500);
+
+      console.error('[VNS AI] Google error', {
+        status: result.status,
+        model,
+        providerStatus: details?.error?.status || null,
+        message: providerMessage,
+      });
+
       if (result.status === 429) {
         throw new ConsultantError(
           429,
@@ -146,6 +177,11 @@ export async function generateBrief(
       candidate?.finishReason &&
       candidate.finishReason !== 'STOP'
     ) {
+      console.error('[VNS AI] Incomplete response', {
+        model,
+        finishReason: candidate.finishReason,
+      });
+
       throw new Error('Incomplete output');
     }
 
@@ -154,8 +190,27 @@ export async function generateBrief(
       .map(part => part.text || '')
       .join('');
 
+    if (!output?.trim()) {
+      console.error('[VNS AI] Empty response', {
+        model,
+        hasCandidate: Boolean(candidate),
+        blockReason: data.promptFeedback?.blockReason || null,
+      });
+
+      throw new Error('Empty output');
+    }
+
     return validateBrief(JSON.parse(output));
   } catch (error) {
+    // Do not log questionnaire answers or generated content.
+    console.error('[VNS AI] Generation error', {
+      model,
+      type: error?.name || 'UnknownError',
+      status:
+        error instanceof ConsultantError ? error.status : null,
+      networkCode: error?.cause?.code || null,
+    });
+
     if (error instanceof ConsultantError) {
       throw error;
     }
@@ -172,9 +227,11 @@ export async function generateBrief(
       'AI could not generate a valid brief. Your answers are preserved; please retry.',
     );
   } finally {
-    // Logs duration only; no keys, answers, or contact details.
     console.info(
-      `[VNS AI] Request finished in ${((Date.now() - started) / 1000).toFixed(1)} seconds`,
+      `[VNS AI] Request finished in ${(
+        (Date.now() - started) /
+        1000
+      ).toFixed(1)} seconds`,
     );
   }
 }
