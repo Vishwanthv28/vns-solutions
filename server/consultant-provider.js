@@ -1,3 +1,5 @@
+import { setTimeout as delay } from 'node:timers/promises';
+
 import {
   VNS_SERVICES,
   validateBrief,
@@ -78,6 +80,42 @@ Never request passwords, payment data, or contact details.
 Return only JSON matching the supplied schema.
 `.trim();
 
+// Retry temporary Google 503 errors.
+// Every attempt and retry delay shares the original timeout.
+async function fetchWithRetry(fetchImpl, url, options) {
+  const maxAttempts = 3;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    options.signal?.throwIfAborted();
+
+    const response = await fetchImpl(url, options);
+
+    // Return successes, other errors, and the final failed attempt.
+    if (response.status !== 503 || attempt === maxAttempts) {
+      return response;
+    }
+
+    const delayMs = 1000 * 2 ** (attempt - 1);
+
+    console.warn('[VNS AI] Google unavailable; retrying', {
+      attempt,
+      nextAttempt: attempt + 1,
+      status: response.status,
+      delayMs,
+    });
+
+    // Release this response before retrying.
+    if (typeof response.body?.cancel === 'function') {
+      await response.body.cancel().catch(() => {});
+    }
+
+    // Stop waiting immediately if the shared timeout expires.
+    await delay(delayMs, undefined, {
+      signal: options.signal,
+    });
+  }
+}
+
 export async function generateBrief(
   answers,
   { env = process.env, fetchImpl = fetch } = {},
@@ -107,7 +145,8 @@ export async function generateBrief(
   const started = Date.now();
 
   try {
-    const result = await fetchImpl(
+    const result = await fetchWithRetry(
+      fetchImpl,
       `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
       {
         method: 'POST',
