@@ -13,7 +13,7 @@
   width: min(720px, 100%);
   height: 100%;
   display: grid;
-  grid-template-rows: auto 3px 1fr auto;
+  grid-template-rows: auto auto 3px 1fr auto;
   background: var(--paper);
   color: var(--ink);
   box-shadow: -30px 0 90px rgba(0, 0, 0, .24);
@@ -73,6 +73,85 @@
 .ai-close:hover {
   border-color: var(--violet);
   color: var(--violet)
+}
+
+.ai-consultant-modes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 30px;
+  border-bottom: 1px solid var(--line)
+}
+
+.ai-mode-buttons {
+  display: flex;
+  gap: 5px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--soft)
+}
+
+.ai-mode-buttons button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font: 700 12px inherit;
+  cursor: pointer
+}
+
+.ai-mode-buttons button.selected {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .12)
+}
+
+.ai-language-buttons {
+  display: flex;
+  gap: 5px;
+  padding: 4px;
+  margin-left: auto;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--soft)
+}
+
+.ai-language-buttons button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font: 700 12px inherit;
+  cursor: pointer
+}
+
+.ai-language-buttons button.selected {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .12)
+}
+
+.ai-consultant-modes>label {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700
+}
+
+.ai-consultant-modes>select {
+  min-height: 38px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px
 }
 
 .ai-progress {
@@ -174,6 +253,99 @@
 
 .ai-answer-area {
   margin: 30px 0 0 50px
+}
+
+.ai-voice {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--soft)
+}
+
+.ai-voice-guidance {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55
+}
+
+.ai-voice-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px
+}
+
+.ai-voice-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700
+}
+
+.ai-voice-toggle input {
+  accent-color: var(--violet)
+}
+
+.ai-voice-button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--violet) 35%, var(--line));
+  border-radius: 7px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 700 12px inherit;
+  cursor: pointer
+}
+
+.ai-voice-button:hover:not(:disabled) {
+  border-color: var(--violet);
+  color: var(--violet)
+}
+
+.ai-voice-button:disabled {
+  cursor: not-allowed;
+  opacity: .5
+}
+
+.ai-voice-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5
+}
+
+.ai-voice-transcript {
+  display: grid;
+  gap: 10px;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none
+}
+
+.ai-voice-transcript li {
+  display: grid;
+  gap: 5px;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere
+}
+
+.ai-voice-transcript li b {
+  color: var(--violet);
+  font-size: 11px
 }
 
 .ai-option-list {
@@ -440,6 +612,37 @@ textarea.ai-text-answer {
     font-size: 14px
   }
 
+  .ai-consultant-modes {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px
+  }
+
+  .ai-mode-buttons {
+    flex: 1
+  }
+
+  .ai-mode-buttons button {
+    flex: 1;
+    padding: 0 8px;
+    font-size: 11px
+  }
+
+  .ai-language-buttons {
+    width: 100%;
+    margin-left: 0
+  }
+
+  .ai-language-buttons button {
+    flex: 1;
+    padding: 0 8px;
+    font-size: 11px
+  }
+
+  .ai-consultant-modes>label {
+    margin-left: 0
+  }
+
   .ai-consultant-body {
     padding: 24px 18px
   }
@@ -468,6 +671,10 @@ textarea.ai-text-answer {
 
   .ai-answer-area {
     margin: 24px 0 0
+  }
+
+  .ai-voice {
+    margin: 20px 0 0
   }
 
   .ai-option-multiple {

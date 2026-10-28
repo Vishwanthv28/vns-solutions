@@ -1,4 +1,5 @@
 import { validateAnswers, validateBrief } from './consultant-validation.js';
+import { sarvamInitialLanguage } from './sarvam-language.js';
 export function validateLead(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Please complete your contact details.');
   const value = (key, max) => {
@@ -9,10 +10,25 @@ export function validateLead(input) {
   const name = value('name', 80), email = value('email', 160), phone = value('phone', 40);
   if (name.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || (phone && (!/^[+\d\s().-]+$/.test(phone) || phone.replace(/\D/g, '').length < 7))) throw new Error('Enter a valid name, email, and optional phone number.');
   if (input.consent !== true) throw new Error('Please agree that VNS may contact you about this project.');
+  if (input.aiCallConsent !== undefined && typeof input.aiCallConsent !== 'boolean') throw new Error('Please choose whether you want an AI telephone call.');
+  const aiCallConsent = input.aiCallConsent === true;
+  if (aiCallConsent && !phone) throw new Error('Enter a phone number if you request an AI telephone call.');
+  if (input.aiCallLanguage !== undefined && !sarvamInitialLanguage(input.aiCallLanguage)) throw new Error('Choose English, Telugu, or Hindi for the AI telephone call.');
+  if (aiCallConsent && !sarvamInitialLanguage(input.aiCallLanguage)) throw new Error('Choose a preferred language for the AI telephone call.');
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.submissionId || '')) throw new Error('Please reopen the contact form and try again.');
   const checked = validateAnswers(input.answers);
   if (Object.keys(checked.errors).length) throw new Error('Please review your questionnaire answers.');
   let brief;
   try { brief = validateBrief(input.brief); } catch { throw new Error('Please generate a valid project brief first.'); }
-  return { id: input.submissionId.toLowerCase(), name, email, phone, consent: true, answers: checked.answers, brief };
+  return {
+    id: input.submissionId.toLowerCase(),
+    name,
+    email,
+    phone,
+    consent: true,
+    ai_call_consent: aiCallConsent,
+    ai_call_language: aiCallConsent ? input.aiCallLanguage : null,
+    answers: checked.answers,
+    brief,
+  };
 }

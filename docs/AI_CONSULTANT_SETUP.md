@@ -29,7 +29,7 @@ The ZIP contains no real keys. If moving into your existing working folder, back
 ## 2. Create the lead table
 1. Open https://supabase.com/dashboard and create/open your VNS project.
 2. In SQL Editor, create a new query.
-3. Copy everything from `supabase/consultant-leads.sql` and run it once.
+3. Copy everything from `supabase/consultant-leads.sql` and run it. This SQL is safe to re-run against an existing table: it adds missing columns and constraints without dropping or recreating the table or its records.
 4. Find your Project URL in the project API settings.
 5. In API Keys, copy the backend **service_role** key (legacy JWT key). This implementation uses it only on the server. Do not use an anon/publishable key here.
 6. Add to `.env.local`:
@@ -40,6 +40,10 @@ SUPABASE_SERVICE_ROLE_KEY=YOUR_PRIVATE_SERVICE_ROLE_KEY
 ```
 
 The table enables row level security and revokes access for public visitor roles. Do not add public read/write policies. View leads through Supabase Table Editor as the project owner. The `brief` JSON is visitor-submitted and must be reviewed; validation checks shape and allowed service names, not AI provenance.
+
+For an existing project, run `supabase/ai-call-consent.sql` in the same project's SQL Editor. It adds `ai_call_consent`, `ai_call_consent_at`, `ai_call_language`, `ai_call_status`, `ai_call_provider`, `ai_call_provider_id`, `ai_call_summary`, `ai_call_next_action` and `ai_call_updated_at`, plus the status and language constraints. It does not modify existing records, table privileges, RLS, or policies. Historical consent and call status remain `NULL` (unknown); no consent, timestamp, or language is backfilled. New submissions send explicit consent and status values.
+
+The existing project already has the owner-dashboard columns `status` and `updated_at` and client-pipeline columns `priority`, `owner_notes` and `next_followup_at`; no dashboard dependency migration is needed there. For a fresh project, apply in this order in the same Supabase project: `supabase/consultant-leads.sql`, `supabase/owner-dashboard.sql`, `supabase/client-pipeline.sql`, then `supabase/ai-call-consent.sql`.
 
 ## 3. Configure the owner email
 1. Open https://resend.com/api-keys and use your private Resend key.

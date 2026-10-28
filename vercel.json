@@ -17,6 +17,9 @@
     "api/consultant.js": {
       "maxDuration": 60
     },
+    "api/consultant-voice.js": {
+      "maxDuration": 60
+    },
     "api/consultant-lead.js": {
       "maxDuration": 60
     }

@@ -1,3 +1,4 @@
+import { logSupabaseFailure } from './supabase-error.js';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const LEAD_STATUSES = ['new', 'contacted', 'in_progress', 'completed'];
 export const LEAD_PRIORITIES = ['normal', 'high', 'low'];
@@ -25,7 +26,7 @@ export function createOwnerService({ env = process.env, fetchImpl = fetch } = {}
     catch { throw new OwnerError(502, 'The owner service could not connect. Please retry.'); }
     if (!result.ok) {
       if (result.status === 429) throw new OwnerError(429, 'Too many requests. Please wait and retry.');
-      // Do not log credentials, tokens, or customer data.
+      if (failureStatus !== 401) await logSupabaseFailure('Owner service request failed', result);
       throw new OwnerError(failureStatus, failureStatus === 401 ? 'Sign-in failed or your session expired.' : 'Could not load or update enquiries. Check the dashboard SQL migration.');
     }
     if (result.status === 204) return null;
@@ -69,7 +70,7 @@ export function createOwnerService({ env = process.env, fetchImpl = fetch } = {}
     if (!Number.isInteger(number) || number < 1 || number > 100000 || (status !== 'all' && !LEAD_STATUSES.includes(status))) throw new OwnerError(400, 'Invalid page or status filter.');
     if (typeof search !== 'string' || !/^[\p{L}\p{N}\s@.+_-]{0,80}$/u.test(search) || !['all', 'due', 'upcoming'].includes(followup) || (priority !== 'all' && !LEAD_PRIORITIES.includes(priority))) throw new OwnerError(400, 'Use up to 80 letters, numbers, spaces or email characters for search. Choose valid filters.');
     const query = new URLSearchParams({
-      select: 'id,created_at,name,email,phone,answers,brief,consent,notification_sent,status,updated_at,priority,owner_notes,next_followup_at',
+      select: 'id,created_at,name,email,phone,answers,brief,consent,ai_call_consent,ai_call_consent_at,ai_call_language,ai_call_status,ai_call_provider,ai_call_provider_id,ai_call_summary,ai_call_next_action,ai_call_updated_at,notification_sent,status,updated_at,priority,owner_notes,next_followup_at',
       order: 'created_at.desc,id.desc', offset: String((number - 1) * 25), limit: '26',
     });
     if (status !== 'all') query.set('status', `eq.${status}`);

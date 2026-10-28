@@ -254,10 +254,13 @@ test('network failure maps to safe error', async () => {
 });
 
 test('provider timeout maps to 504', async () => {
+  let attempts = 0;
   await assert.rejects(
     generateBrief(answers, {
       env,
+      wait: async () => {},
       fetchImpl: async () => {
+        attempts++;
         const error = new Error('Request timed out');
         error.name = 'TimeoutError';
         throw error;
@@ -267,6 +270,90 @@ test('provider timeout maps to 504', async () => {
       error instanceof ConsultantError &&
       error.status === 504,
   );
+  assert.equal(attempts, 3);
+});
+
+test('timeout diagnostics identify the provider phase without logging answers or secrets', async () => {
+  const errors = [];
+  const originalError = console.error;
+  console.error = (...args) => errors.push(args);
+  try {
+    await assert.rejects(
+      generateBrief(answers, {
+        env,
+        wait: async () => {},
+        fetchImpl: async () => {
+          const error = new Error('Request timed out');
+          error.name = 'TimeoutError';
+          error.cause = { code: 'ETIMEDOUT' };
+          throw error;
+        },
+      }),
+      error => error instanceof ConsultantError && error.status === 504,
+    );
+  } finally {
+    console.error = originalError;
+  }
+
+  const diagnostics = JSON.stringify(errors);
+  assert.match(diagnostics, /Request deadline reached/);
+  assert.match(diagnostics, /"phase":"provider_request"/);
+  assert.match(diagnostics, /"attempt":3/);
+  assert.match(diagnostics, /ETIMEDOUT/);
+  assert.ok(!diagnostics.includes(env.GEMINI_API_KEY));
+  assert.ok(!diagnostics.includes(answers.businessType));
+});
+
+test('retries temporary Google overload responses with bounded backoff', async () => {
+  let attempts = 0;
+  const waits = [];
+  const result = await generateBrief(answers, {
+    env,
+    wait: async milliseconds => waits.push(milliseconds),
+    fetchImpl: async () => {
+      attempts++;
+      if (attempts < 3) return googleResponse({ error: { status: 'UNAVAILABLE' } }, 503);
+      return googleResponse({
+        candidates: [{
+          finishReason: 'STOP',
+          content: { parts: [{ text: JSON.stringify(brief) }] },
+        }],
+      });
+    },
+  });
+
+  assert.deepEqual(result, brief);
+  assert.equal(attempts, 3);
+  assert.deepEqual(waits, [1000, 2000]);
+});
+
+test('retries request deadlines and can succeed without changing the overall timeout', async () => {
+  let attempts = 0;
+  const waits = [];
+  const result = await generateBrief(answers, {
+    env,
+    attemptTimeoutMs: 100,
+    wait: async milliseconds => waits.push(milliseconds),
+    fetchImpl: async (_url, request) => {
+      attempts++;
+      assert.ok(request.signal);
+      if (attempts === 1) {
+        const error = new Error('Attempt timed out');
+        error.name = 'TimeoutError';
+        throw error;
+      }
+      return googleResponse({
+        candidates: [{
+          finishReason: 'STOP',
+          content: { parts: [{ text: JSON.stringify(brief) }] },
+        }],
+      });
+    },
+  });
+
+  assert.deepEqual(result, brief);
+  assert.equal(attempts, 2);
+  assert.deepEqual(waits, [1000]);
 });
 
 test('rejects malformed, truncated, and unsupported service output', async () => {

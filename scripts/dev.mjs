@@ -3,11 +3,12 @@ import { createServer } from 'vite';
 import consultant from '../api/consultant.js';
 import contact from '../api/contact.js';
 import lead from '../api/consultant-lead.js';
+import consultantVoice from '../api/consultant-voice.js';
 import owner from '../api/owner.js';
 const vite = await createServer({ server: { middlewareMode: true }, appType: 'spa' });
 const server = http.createServer(async (req, res) => {
   const route = req.url?.split('?')[0];
-  const handler = route === '/api/owner' ? owner : route === '/api/consultant' ? consultant : route === '/api/contact' ? contact : route === '/api/consultant-lead' ? lead : null;
+  const handler = route === '/api/owner' ? owner : route === '/api/consultant' ? consultant : route === '/api/consultant-voice' ? consultantVoice : route === '/api/contact' ? contact : route === '/api/consultant-lead' ? lead : null;
   if (!handler) {
     if (route?.startsWith('/api/')) { res.writeHead(404, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ message: 'API endpoint not found.' })); return; }
     return vite.middlewares(req, res);
@@ -16,7 +17,8 @@ const server = http.createServer(async (req, res) => {
   try {
     for await (const chunk of req) {
       bytes += chunk.length;
-      if (bytes > (route === '/api/consultant-lead' ? 65000 : 20000)) { res.writeHead(413, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ message: 'Request is too large.' })); return; }
+      const maxBytes = route === '/api/consultant-lead' ? 65000 : route === '/api/consultant-voice' ? 3000000 : 20000;
+      if (bytes > maxBytes) { res.writeHead(413, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ message: 'Request is too large.' })); return; }
       chunks.push(chunk);
     }
     req.body = Buffer.concat(chunks).toString('utf8');

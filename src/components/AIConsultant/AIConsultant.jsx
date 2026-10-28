@@ -2,18 +2,20 @@ import { useEffect, useRef, useState } from "react";
 import { consultantQuestions } from "./consultantQuestions";
 import "./AIConsultant.css";
 import LeadSubmission, { emptyLeadDraft } from "./LeadSubmission.jsx";
-import { answerError, validateAnswers, validateBrief } from "../../../server/consultant-validation.js";
+import { validateAnswers, validateBrief } from "../../../server/consultant-validation.js";
+import VoiceConversation from "./VoiceConversation.jsx";
+import { CONSULTANT_LANGUAGES, consultantCopy, localizedOption, localizedQuestion, localizedValidation } from "./consultantCopy.js";
 
-function AnswerControl({ question, value, onChange, onSelect, onSubmit }) {
+function AnswerControl({ question, displayQuestion, value, onChange, onSelect, onSubmit, language }) {
   if (question.type === "single") {
-    return <div className="ai-option-list">{question.options.map(option => <button className={value === option ? "selected" : ""} type="button" key={option} onClick={() => onSelect(option)}>{option}<span aria-hidden="true">{value === option ? "✓" : "→"}</span></button>)}</div>;
+    return <div className="ai-option-list">{question.options.map((option, index) => <button className={value === option ? "selected" : ""} type="button" key={option} onClick={() => onSelect(option)}>{displayQuestion.options[index]}<span aria-hidden="true">{value === option ? "✓" : "→"}</span></button>)}</div>;
   }
 
   if (question.type === "multiple") {
     const selected = Array.isArray(value) ? value : [];
-    return <div className="ai-option-list ai-option-multiple">{question.options.map(option => {
+    return <div className="ai-option-list ai-option-multiple">{question.options.map((option, index) => {
       const active = selected.includes(option);
-      return <button className={active ? "selected" : ""} type="button" key={option} aria-pressed={active} onClick={() => onChange(active ? selected.filter(item => item !== option) : [...selected, option])}>{option}<span aria-hidden="true">{active ? "✓" : "+"}</span></button>;
+      return <button className={active ? "selected" : ""} type="button" key={option} aria-pressed={active} onClick={() => onChange(active ? selected.filter(item => item !== option) : [...selected, option])}>{displayQuestion.options[index]}<span aria-hidden="true">{active ? "✓" : "+"}</span></button>;
     })}</div>;
   }
 
@@ -23,17 +25,26 @@ function AnswerControl({ question, value, onChange, onSelect, onSubmit }) {
         event.preventDefault();
         onSubmit();
       }
-    }} rows={question.multiline ? 4 : undefined} placeholder={question.placeholder} aria-label={question.label} minLength={question.optional ? undefined : 2} maxLength={question.id === "notes" ? 2000 : question.id === "customers" ? 500 : 120} autoFocus />
-    {!question.multiline && <small>Press Enter to continue</small>}
+    }} rows={question.multiline ? 4 : undefined} placeholder={displayQuestion.placeholder} aria-label={displayQuestion.label} minLength={question.optional ? undefined : 2} maxLength={question.id === "notes" ? 2000 : question.id === "customers" ? 500 : 120} autoFocus />
+    {!question.multiline && <small>{language === "hi-IN" ? "आगे बढ़ने के लिए Enter दबाएं" : language === "te-IN" ? "కొనసాగించడానికి Enter నొక్కండి" : "Press Enter to continue"}</small>}
   </div>;
 }
 
-function ProjectSummary({ answers, brief, loading, error, onEdit, leadDraft, setLeadDraft }) {
+function ProjectSummary({ answers, brief, loading, error, onEdit, leadDraft, setLeadDraft, language }) {
+  const copy = consultantCopy(language);
   return <div className="ai-summary" aria-live="polite" aria-busy={loading}>
     <p className="ai-kicker">{brief ? "AI project brief" : "Review your answers"}</p>
     <h3>{brief ? "Your starting brief is ready." : "Ready to plan your project?"}</h3>
     <p>Review your answers, then generate a brief. Suggested features are a starting point for discussion.</p>
-    <dl>{consultantQuestions.map((q, index) => <div key={q.id}><dt>{q.id === "businessType" ? "Business" : q.id === "mainGoal" ? "Main goal" : q.id === "websiteStatus" ? "Website" : q.id}</dt><dd>{Array.isArray(answers[q.id]) ? answers[q.id].join(", ") : answers[q.id] || "Skipped"}</dd><button className="ai-edit" type="button" disabled={loading} onClick={() => onEdit(index)}>Edit<span className="sr-only"> {q.label}</span></button></div>)}</dl>
+    <dl>{consultantQuestions.map((q, index) => {
+      const displayQuestion = localizedQuestion(q, language);
+      const answer = Array.isArray(answers[q.id])
+        ? answers[q.id].map(option => localizedOption(option, language)).join(", ")
+        : q.options?.includes(answers[q.id])
+          ? localizedOption(answers[q.id], language)
+          : answers[q.id] || (language === "hi-IN" ? "छोड़ा गया" : language === "te-IN" ? "దాటవేయబడింది" : "Skipped");
+      return <div key={q.id}><dt>{displayQuestion.label}</dt><dd>{answer}</dd><button className="ai-edit" type="button" disabled={loading} onClick={() => onEdit(index)}>{copy.controls.edit}<span className="sr-only"> {displayQuestion.label}</span></button></div>;
+    })}</dl>
     {loading && <p role="status">Generating your AI project brief…</p>}
     {error && <p className="ai-error" role="alert">{error}</p>}
     {brief && <div className="ai-generated-brief"><h4>{brief.businessType}</h4><p>{brief.summary}</p>
@@ -55,6 +66,8 @@ export default function AIConsultant({ open, onClose }) {
   const [brief, setBrief] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState("type");
+  const [language, setLanguage] = useState("en-IN");
   const requestRef = useRef(null);
   const requestId = useRef(0);
   const panelRef = useRef(null);
@@ -62,9 +75,11 @@ export default function AIConsultant({ open, onClose }) {
   const typingTimer = useRef(null);
   const advancing = useRef(false);
   const question = consultantQuestions[step];
+  const displayQuestion = question ? localizedQuestion(question, language) : null;
+  const copy = consultantCopy(language);
   const finished = step === consultantQuestions.length;
   const currentValue = question ? answers[question.id] : undefined;
-  const validationMessage = question ? answerError(question, currentValue) : "";
+  const validationMessage = localizedValidation(question, currentValue, language);
   const canContinue = Boolean(question && !validationMessage);
 
   useEffect(() => {
@@ -120,7 +135,7 @@ export default function AIConsultant({ open, onClose }) {
     function handleKeydown(event) {
       if (event.key === "Escape") onClose();
       if (event.key !== "Tab" || !panel) return;
-      const focusable = [...panel.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [href]')];
+      const focusable = [...panel.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [href]')];
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -178,30 +193,73 @@ export default function AIConsultant({ open, onClose }) {
   return <div className="ai-consultant-layer" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
     <section className="ai-consultant-panel" ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="ai-consultant-title">
       <header className="ai-consultant-header">
-        <div><span className="ai-status-dot" aria-hidden="true" /><div><p>VNS AI Project Consultant</p><small>Plan your project</small></div></div>
+        <div><span className="ai-status-dot" aria-hidden="true" /><div><p id="ai-consultant-title">VNS AI Project Consultant</p><small>{copy.subtitle}</small></div></div>
         <button className="ai-close" type="button" onClick={onClose} aria-label="Close AI Project Consultant">×</button>
       </header>
 
-      <div className="ai-progress" aria-label={finished ? "Questionnaire complete" : `Question ${step + 1} of ${consultantQuestions.length}`}><span style={{ width: `${finished ? 100 : ((step + 1) / consultantQuestions.length) * 100}%` }} /></div>
+      <div className="ai-consultant-modes">
+        <div className="ai-mode-buttons" role="group" aria-label="Consultant mode">
+          <button type="button" aria-pressed={mode === "voice"} className={mode === "voice" ? "selected" : ""} onClick={() => setMode("voice")}>{copy.controls.talk}</button>
+          <button type="button" aria-pressed={mode === "type"} className={mode === "type" ? "selected" : ""} onClick={() => setMode("type")}>{copy.controls.type}</button>
+        </div>
+        {mode === "voice" ? <div className="ai-language-buttons" role="group" aria-label="Conversation language">
+          {CONSULTANT_LANGUAGES.map(({ code, label }) =>
+            <button key={code} type="button" aria-pressed={language === code} className={language === code ? "selected" : ""} onClick={() => setLanguage(code)}>{label}</button>
+          )}
+        </div> : <>
+          <label htmlFor="ai-consultant-language">{copy.controls.language}</label>
+          <select id="ai-consultant-language" value={language} onChange={event => setLanguage(event.target.value)}>
+            <option value="en-IN">English</option>
+            <option value="te-IN">తెలుగు</option>
+            <option value="hi-IN">हिन्दी</option>
+          </select>
+        </>}
+      </div>
+
+      <div className="ai-progress" aria-label={finished ? copy.controls.complete : copy.controls.question(step + 1, consultantQuestions.length)}><span style={{ width: `${finished ? 100 : ((step + 1) / consultantQuestions.length) * 100}%` }} /></div>
 
       <div className="ai-consultant-body">
-        <div className="ai-conversation">
-          <div className="ai-message ai-message-intro"><span>VNS</span><p id="ai-consultant-title">Hi. I’ll help organise your project idea into a clear starting brief.</p></div>
-          {consultantQuestions.slice(0, step).map(item => <div className="ai-history" key={item.id}><p>{item.label}</p><div>{Array.isArray(answers[item.id]) ? answers[item.id].join(" · ") : answers[item.id] || "Skipped"}</div></div>)}
-          {!finished && <div className="ai-message"><span>VNS</span><div><p>{question.label}</p>{question.help && <small>{question.help}</small>}</div></div>}
-          {typing && <div className="ai-typing" role="status" aria-label="Preparing next question"><i /><i /><i /></div>}
-          {finished && <ProjectSummary answers={answers} brief={brief} loading={loading} error={error} onEdit={editAnswer} leadDraft={leadDraft} setLeadDraft={setLeadDraft} />}
-        </div>
+        {mode === "type" ? <>
+          <div className="ai-conversation">
+            <div className="ai-message ai-message-intro"><span>VNS</span><p>{copy.intro}</p></div>
+            {consultantQuestions.slice(0, step).map(item => {
+              const display = localizedQuestion(item, language);
+              const response = Array.isArray(answers[item.id])
+                ? answers[item.id].map(option => localizedOption(option, language)).join(" · ")
+                : item.options?.includes(answers[item.id])
+                  ? localizedOption(answers[item.id], language)
+                  : answers[item.id] || (language === "hi-IN" ? "छोड़ा गया" : language === "te-IN" ? "దాటవేయబడింది" : "Skipped");
+              return <div className="ai-history" key={item.id}><p>{display.label}</p><div>{response}</div></div>;
+            })}
+            {!finished && <div className="ai-message"><span>VNS</span><div><p>{displayQuestion.label}</p>{displayQuestion.help && <small>{displayQuestion.help}</small>}</div></div>}
+            {typing && <div className="ai-typing" role="status" aria-label="Preparing next question"><i /><i /><i /></div>}
+            {finished && <ProjectSummary answers={answers} brief={brief} loading={loading} error={error} onEdit={editAnswer} leadDraft={leadDraft} setLeadDraft={setLeadDraft} language={language} />}
+          </div>
 
-        {!typing && !finished && <div className="ai-answer-area">
-          <AnswerControl question={question} value={currentValue} onChange={value => { setBrief(null); setError(""); setAnswers(current => ({ ...current, [question.id]: value })); }} onSelect={selectSingleAnswer} onSubmit={continueFlow} />
-          {validationMessage && currentValue != null && <p className="ai-validation" role="status">{validationMessage}</p>}
+          {!typing && !finished && <div className="ai-answer-area">
+            <AnswerControl question={question} displayQuestion={displayQuestion} language={language} value={currentValue} onChange={value => { setBrief(null); setError(""); setAnswers(current => ({ ...current, [question.id]: value })); }} onSelect={selectSingleAnswer} onSubmit={continueFlow} />
+            {validationMessage && currentValue != null && <p className="ai-validation" role="status">{validationMessage}</p>}
+          </div>}
+        </> : <div className="ai-conversation">
+          <VoiceConversation
+            language={language}
+            question={question}
+            answers={answers}
+            onAnswer={(answeredQuestion, value) => {
+              setBrief(null); setError("");
+              setAnswers(current => ({ ...current, [answeredQuestion.id]: value }));
+              advanceFlow();
+            }}
+          />
+          {finished && <ProjectSummary answers={answers} brief={brief} loading={loading} error={error} onEdit={editAnswer} leadDraft={leadDraft} setLeadDraft={setLeadDraft} language={language} />}
         </div>}
       </div>
 
       <footer className="ai-consultant-footer">
-        <button className="ai-back" type="button" onClick={() => editAnswer(Math.max(0, step - 1))} disabled={step === 0 || typing || loading || leadDraft.status === "sending"}>{finished ? "Review answers" : "Back"}</button>
-        {!finished ? <div><span>Question {step + 1} of {consultantQuestions.length}</span>{question.type === "single" ? <small className="ai-auto-advance-note">Select one to continue</small> : <button className="button ai-continue" type="button" onClick={continueFlow} disabled={!canContinue || typing}>{question.optional && !currentValue ? "Skip" : "Continue"} <b>→</b></button>}</div> : <div><button className="ai-restart" type="button" disabled={loading || leadDraft.status === "sending"} onClick={restart}>Start again</button><button className="button ai-continue" type="button" disabled={loading || leadDraft.status === "sending"} onClick={generateProjectBrief}>{loading ? "Generating…" : error ? "Retry AI brief" : brief ? "Regenerate brief" : "Generate AI brief"} <b>→</b></button></div>}
+        {mode === "type" || finished ? <>
+          <button className="ai-back" type="button" onClick={() => editAnswer(Math.max(0, step - 1))} disabled={step === 0 || typing || loading || leadDraft.status === "sending"}>{finished ? copy.controls.review : copy.controls.back}</button>
+          {!finished ? <div><span>{copy.controls.question(step + 1, consultantQuestions.length)}</span>{question.type === "single" ? <small className="ai-auto-advance-note">{language === "hi-IN" ? "जारी रखने के लिए एक विकल्प चुनें" : language === "te-IN" ? "కొనసాగడానికి ఒక ఎంపికను ఎంచుకోండి" : "Select one to continue"}</small> : <button className="button ai-continue" type="button" onClick={continueFlow} disabled={!canContinue || typing}>{question.optional && !currentValue ? copy.controls.skip : copy.controls.continue} <b>→</b></button>}</div> : <div><button className="ai-restart" type="button" disabled={loading || leadDraft.status === "sending"} onClick={restart}>{copy.controls.startAgain}</button><button className="button ai-continue" type="button" disabled={loading || leadDraft.status === "sending"} onClick={generateProjectBrief}>{loading ? copy.controls.generating : error ? copy.controls.retry : brief ? copy.controls.regenerate : copy.controls.generate} <b>→</b></button></div>}
+        </> : <div><span>{copy.controls.question(step + 1, consultantQuestions.length)}</span></div>}
       </footer>
     </section>
   </div>;

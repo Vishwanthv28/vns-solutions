@@ -82,20 +82,55 @@ Return only JSON matching the supplied schema.
 
 // Retry temporary Google 503 errors.
 // Every attempt and retry delay shares the original timeout.
-async function fetchWithRetry(fetchImpl, url, options) {
+async function fetchWithRetry(
+  fetchImpl,
+  url,
+  options,
+  onPhase,
+  { wait = delay, attemptTimeoutMs = 15000 } = {},
+) {
   const maxAttempts = 3;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     options.signal?.throwIfAborted();
+    onPhase?.('provider_request', attempt);
 
-    const response = await fetchImpl(url, options);
+    let response;
+    try {
+      response = await fetchImpl(url, {
+        ...options,
+        signal: AbortSignal.any([
+          options.signal,
+          AbortSignal.timeout(attemptTimeoutMs),
+        ]),
+      });
+    } catch (error) {
+      if (
+        !['TimeoutError', 'AbortError'].includes(error?.name) ||
+        options.signal?.aborted ||
+        attempt === maxAttempts
+      ) {
+        throw error;
+      }
 
-    // Return successes, other errors, and the final failed attempt.
-    if (response.status !== 503 || attempt === maxAttempts) {
+      const delayMs = 1000 * 2 ** (attempt - 1);
+      onPhase?.('provider_timeout_retry_wait', attempt);
+      console.warn('[VNS AI] Google request timed out; retrying', {
+        attempt,
+        nextAttempt: attempt + 1,
+        attemptTimeoutMs,
+        delayMs,
+      });
+      await wait(delayMs, undefined, { signal: options.signal });
+      continue;
+    }
+
+    if (![429, 503].includes(response.status) || attempt === maxAttempts) {
       return response;
     }
 
     const delayMs = 1000 * 2 ** (attempt - 1);
+    onPhase?.('provider_retry_wait', attempt);
 
     console.warn('[VNS AI] Google unavailable; retrying', {
       attempt,
@@ -110,7 +145,7 @@ async function fetchWithRetry(fetchImpl, url, options) {
     }
 
     // Stop waiting immediately if the shared timeout expires.
-    await delay(delayMs, undefined, {
+    await wait(delayMs, undefined, {
       signal: options.signal,
     });
   }
@@ -118,7 +153,12 @@ async function fetchWithRetry(fetchImpl, url, options) {
 
 export async function generateBrief(
   answers,
-  { env = process.env, fetchImpl = fetch } = {},
+  {
+    env = process.env,
+    fetchImpl = fetch,
+    wait = delay,
+    attemptTimeoutMs = 15000,
+  } = {},
 ) {
   const provider = (env.CONSULTANT_PROVIDER || 'gemini').trim();
   const key = (env.GEMINI_API_KEY || '').trim();
@@ -143,6 +183,8 @@ export async function generateBrief(
   }
 
   const started = Date.now();
+  let phase = 'provider_request';
+  let attempt = 0;
 
   try {
     const result = await fetchWithRetry(
@@ -175,9 +217,15 @@ export async function generateBrief(
           },
         }),
       },
+      (currentPhase, currentAttempt) => {
+        phase = currentPhase;
+        attempt = currentAttempt;
+      },
+      { wait, attemptTimeoutMs },
     );
 
     if (!result.ok) {
+      phase = 'provider_error_body';
       const details = await result.json().catch(() => null);
 
       // Redact the API key before logging provider diagnostics.
@@ -209,6 +257,7 @@ export async function generateBrief(
       );
     }
 
+    phase = 'provider_response_body';
     const data = await result.json();
     const candidate = data.candidates?.[0];
 
@@ -239,12 +288,16 @@ export async function generateBrief(
       throw new Error('Empty output');
     }
 
+    phase = 'brief_validation';
     return validateBrief(JSON.parse(output));
   } catch (error) {
     // Do not log questionnaire answers or generated content.
     console.error('[VNS AI] Generation error', {
       model,
       type: error?.name || 'UnknownError',
+      phase,
+      attempt,
+      durationMs: Date.now() - started,
       status:
         error instanceof ConsultantError ? error.status : null,
       networkCode: error?.cause?.code || null,
@@ -255,6 +308,15 @@ export async function generateBrief(
     }
 
     if (['TimeoutError', 'AbortError'].includes(error?.name)) {
+      console.error('[VNS AI] Request deadline reached', {
+        model,
+        phase,
+        attempt,
+        durationMs: Date.now() - started,
+        deadlineMs: 50000,
+        type: error.name,
+        networkCode: error?.cause?.code || null,
+      });
       throw new ConsultantError(
         504,
         'AI took too long. Your answers are preserved; please retry.',

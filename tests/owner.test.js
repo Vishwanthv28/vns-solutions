@@ -52,6 +52,7 @@ test('owner list authenticates first, applies pagination and excludes internal p
     assert.equal(query.get('status'), 'eq.contacted');
     assert.equal(query.get('offset'), '25');
     assert.equal(query.get('limit'), '26');
+    for (const field of ['ai_call_consent', 'ai_call_consent_at', 'ai_call_language', 'ai_call_status', 'ai_call_provider_id', 'ai_call_summary', 'ai_call_next_action']) assert.ok(query.get('select').includes(field));
     assert.ok(!query.get('select').includes('payload_hash'));
     assert.equal(options.headers.apikey, env.SUPABASE_SERVICE_ROLE_KEY);
     return json(Array.from({ length: 26 }, (_, i) => ({ id: i })));

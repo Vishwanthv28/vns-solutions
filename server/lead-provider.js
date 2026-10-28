@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { logSupabaseFailure } from './supabase-error.js';
 export class LeadError extends Error {
   constructor(status, message) { super(message); this.status = status; }
 }
@@ -14,17 +15,23 @@ export async function saveAndNotifyLead(lead, { env = process.env, fetchImpl = f
   const headers = { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
   const db = async (url, options) => {
     const result = await fetchImpl(url, { ...options, headers: { ...headers, ...options.headers }, signal: AbortSignal.timeout(8000) });
-    if (!result.ok) { console.error('Lead database request failed', result.status); throw new LeadError(502, 'We could not confirm your submission. Your form is preserved; please retry.'); }
+    if (!result.ok) { await logSupabaseFailure('Lead database request failed', result); throw new LeadError(502, 'We could not confirm your submission. Your form is preserved; please retry.'); }
     return result;
   };
-  await db(`${endpoint}?on_conflict=id`, { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify({ id, ...payload, payload_hash: hash }) });
+  await db(`${endpoint}?on_conflict=id`, { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify({
+    id,
+    ...payload,
+    ai_call_consent_at: lead.ai_call_consent ? new Date().toISOString() : null,
+    ai_call_status: lead.ai_call_consent ? 'requested' : 'not_requested',
+    payload_hash: hash,
+  }) });
   const lookup = await db(`${endpoint}?id=eq.${id}&select=payload_hash,notification_sent`, { method: 'GET' });
   const rows = await lookup.json();
   if (!Array.isArray(rows) || rows.length !== 1 || rows[0].payload_hash !== hash) throw new LeadError(409, 'This submission changed. Please reopen the contact form and submit again.');
   if (rows[0].notification_sent) return { ok: true, reference: id };
   const { brief, answers } = lead;
   const text = [
-    'New VNS AI Consultant project submission', `Reference: ${id}`, `Name: ${lead.name}`, `Email: ${lead.email}`, `Phone: ${lead.phone || 'Not provided'}`, 'Permission to contact: Yes', '',
+    'New VNS AI Consultant project submission', `Reference: ${id}`, `Name: ${lead.name}`, `Email: ${lead.email}`, `Phone: ${lead.phone || 'Not provided'}`, 'Permission to contact VNS: Yes', `AI telephone call explicitly requested: ${lead.ai_call_consent ? 'Yes' : 'No'}`, ...(lead.ai_call_consent ? [`Preferred AI call language: ${lead.ai_call_language}`] : []), '',
     'Visitor questionnaire:', ...Object.entries(answers).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v || 'Skipped'}`), '',
     'Visitor-submitted AI brief (starting point for review):', brief.businessType, brief.summary, '', 'Goals:', ...brief.goals.map(v => `- ${v}`), '',
     'Recommended services:', ...brief.recommendedServices.map(v => `- ${v.name}: ${v.reason}`), '', 'Suggested features:', ...brief.suggestedFeatures.map(v => `- ${v}`), '', 'Next steps:', ...brief.nextSteps.map(v => `- ${v}`),

@@ -3,6 +3,18 @@ import './OwnerDashboard.css';
 import { followupState, localDateInput, replyDraft } from './pipeline.js';
 
 const statuses = { new: 'New', contacted: 'Contacted', in_progress: 'In progress', completed: 'Completed' };
+const aiCallStatuses = {
+  not_requested: 'Not requested',
+  requested: 'Visitor requested a call',
+  pending: 'Call pending',
+  initiating: 'Call starting',
+  queued: 'Call queued',
+  in_progress: 'Call in progress',
+  completed: 'Call completed',
+  failed: 'Call failed',
+  cancelled: 'Call cancelled',
+};
+const aiCallLanguages = { 'en-IN': 'English', 'te-IN': 'Telugu', 'hi-IN': 'Hindi' };
 const date = value => value ? new Date(value).toLocaleString() : '—';
 
 async function api(action, options = {}) {
@@ -203,6 +215,14 @@ export default function OwnerDashboard() {
             {!selected ? <div className="owner-empty-detail"><span>↗</span><h2>Every project starts<br />with a conversation.</h2><p>Select an enquiry to read the brief and update its status.</p></div> : <>
               <div className="owner-detail-heading"><p className="owner-kicker">PROJECT BRIEF</p><h2>{selected.name}</h2><p>{brief.businessType}</p></div>
               <div className="owner-contact"><a href={`mailto:${selected.email}`}>{selected.email} ↗</a><span>{selected.phone || 'Phone not provided'}</span><span>Received {date(selected.created_at)}</span><span className="owner-reference">Reference: {selected.id}</span></div>
+              <section className="owner-ai-call" aria-label="AI telephone call">
+                <div className="owner-section-top"><h3>AI telephone call</h3><span>{aiCallStatuses[selected.ai_call_status] || 'Status unavailable'}</span></div>
+                <p>{selected.ai_call_consent === true ? `Visitor explicitly requested an AI call${selected.ai_call_consent_at ? ` on ${date(selected.ai_call_consent_at)}` : ''}.` : selected.ai_call_consent === false ? 'Visitor did not request an AI telephone call.' : 'No AI-call consent record is available for this enquiry.'}</p>
+                {selected.ai_call_consent && selected.ai_call_language && <p><b>Preferred language:</b> {aiCallLanguages[selected.ai_call_language] || 'Unavailable'}</p>}
+                {selected.ai_call_provider_id && <small>Provider call ID: {selected.ai_call_provider_id}</small>}
+                {selected.ai_call_summary && <p><b>Call summary:</b> {selected.ai_call_summary}</p>}
+                {selected.ai_call_next_action && <p><b>Next action:</b> {selected.ai_call_next_action}</p>}
+              </section>
               <label className="owner-status-control">Enquiry status<select value={selected.status} onChange={changeStatus} disabled={busy || dirty}>{Object.entries(statuses).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
               <p className="owner-small">{selected.notification_sent ? 'Notification accepted by the email service; inbox delivery is separate.' : 'Email notification is pending. The enquiry is saved.'}</p>
               <form className="owner-workflow-form" onSubmit={saveWorkflow}>

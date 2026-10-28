@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { validateLead } from '../server/lead-validation.js';
 import { saveAndNotifyLead } from '../server/lead-provider.js';
 import { createLeadHandler } from '../api/consultant-lead.js';
+import { sarvamInitialLanguage } from '../server/sarvam-language.js';
 const body = { submissionId: 'b8bc5927-4a98-4f77-b310-22d815d77976', name: ' Demo Visitor ', email: 'demo@example.com', phone: '', consent: true, answers: { businessType: 'restaurant', websiteStatus: 'I do not have a website', mainGoal: 'More bookings', customers: 'Local families', capabilities: ['New business website'], timeline: 'Within 1–2 months', notes: '' }, brief: { businessType: 'restaurant', summary: 'Build a restaurant website.', goals: ['More bookings'], recommendedServices: [{ name: 'Conversion websites', reason: 'Show menus.' }], suggestedFeatures: ['Menu'], nextSteps: ['Discuss scope'] } };
 const env = { SUPABASE_URL: 'https://test.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'test-db-secret', RESEND_API_KEY: 'test-mail-secret', LEAD_EMAIL_FROM: 'VNS <onboarding@resend.dev>', LEAD_EMAIL_TO: 'owner@example.com' };
 function network() {
@@ -23,10 +24,27 @@ function network() {
 }
 function response() { return { code: 200, headers: {}, setHeader(k,v) { this.headers[k]=v; }, status(v) { this.code=v; return this; }, json(v) { this.data=v; } }; }
 async function call(input, submit, extra = {}) { const res=response(); await createLeadHandler(submit,{ limit: false })({method:'POST',headers:{host:'localhost:5173',origin:'http://localhost:5173'},body:input,...extra},res); return res; }
-test('optional phone accepted and unknown fields removed', () => { const lead=validateLead({...body, unexpected:'discard'}); assert.equal(lead.phone,''); assert.equal(lead.name,'Demo Visitor'); assert.equal(lead.unexpected,undefined); });
+test('optional phone accepted and unknown fields removed', () => { const lead=validateLead({...body, unexpected:'discard'}); assert.equal(lead.phone,''); assert.equal(lead.name,'Demo Visitor'); assert.equal(lead.ai_call_consent,false); assert.equal(lead.unexpected,undefined); });
+test('AI call consent is separate and requires a valid phone number', () => {
+  assert.equal(validateLead({ ...body, aiCallConsent: false }).ai_call_consent, false);
+  assert.throws(() => validateLead({ ...body, aiCallConsent: true }), /phone number/);
+  const requested = validateLead({ ...body, phone: '+91 98765 43210', aiCallConsent: true, aiCallLanguage: 'te-IN' });
+  assert.equal(requested.ai_call_consent, true);
+  assert.equal(requested.ai_call_language, 'te-IN');
+  assert.throws(() => validateLead({ ...body, phone: '+91 98765 43210', aiCallConsent: true }), /preferred language/);
+  assert.throws(() => validateLead({ ...body, phone: '+91 98765 43210', aiCallConsent: true, aiCallLanguage: 'fr-FR' }), /Choose English, Telugu, or Hindi/);
+  assert.throws(() => validateLead({ ...body, aiCallConsent: 'yes' }), /whether you want an AI telephone call/);
+});
+test('preferred language maps to Sarvam documented initial_language_name values', () => {
+  assert.equal(sarvamInitialLanguage('en-IN'), 'English');
+  assert.equal(sarvamInitialLanguage('te-IN'), 'Telugu');
+  assert.equal(sarvamInitialLanguage('hi-IN'), 'Hindi');
+  assert.equal(sarvamInitialLanguage('constructor'), null);
+  assert.equal(sarvamInitialLanguage('fr-FR'), null);
+});
 test('rejects contact header injection, missing consent, malformed phone and UUID', () => { for (const change of [{name:'x\r\nBcc: bad'},{email:'bad'},{consent:false},{phone:'123'},{submissionId:'not-a-uuid'}]) assert.throws(()=>validateLead({...body,...change})); });
 test('rejects tampered questionnaire and unsupported brief services', () => { assert.throws(()=>validateLead({...body,answers:{...body.answers,mainGoal:'invented'}})); assert.throws(()=>validateLead({...body,brief:{...body.brief,recommendedServices:[{name:'invented',reason:'bad'}]}})); });
-test('success saves lead before notification and avoids repeated emails on retry', async () => { const n=network(); const lead=validateLead(body); assert.equal((await saveAndNotifyLead(lead,{env,fetchImpl:n.fetch})).ok,true); await saveAndNotifyLead(lead,{env,fetchImpl:n.fetch}); assert.equal(n.inserts.length,1); assert.equal(n.emails.length,1); assert.equal(n.emails[0].body.reply_to,body.email); assert.match(n.emails[0].body.text,/Build a restaurant website/); assert.match(n.emails[0].headers['Idempotency-Key'],/consultant-lead/); });
+test('success saves consent and preferred call language before notification; retries do not duplicate emails', async () => { const n=network(); const lead=validateLead({...body, phone:'+91 98765 43210', aiCallConsent:true, aiCallLanguage:'te-IN'}); assert.equal((await saveAndNotifyLead(lead,{env,fetchImpl:n.fetch})).ok,true); await saveAndNotifyLead(lead,{env,fetchImpl:n.fetch}); assert.equal(n.inserts.length,1); assert.equal(n.inserts[0].ai_call_consent,true); assert.equal(n.inserts[0].ai_call_language,'te-IN'); assert.equal(n.inserts[0].ai_call_status,'requested'); assert.ok(n.inserts[0].ai_call_consent_at); assert.equal(n.emails.length,1); assert.equal(n.emails[0].body.reply_to,body.email); assert.match(n.emails[0].body.text,/Build a restaurant website/); assert.match(n.emails[0].body.text,/AI telephone call explicitly requested: Yes/); assert.match(n.emails[0].body.text,/Preferred AI call language: te-IN/); assert.match(n.emails[0].headers['Idempotency-Key'],/consultant-lead/); });
 test('email failure preserves saved lead and retry does not duplicate row', async () => { const n=network();n.mailFail=true;const lead=validateLead(body); await assert.rejects(saveAndNotifyLead(lead,{env,fetchImpl:n.fetch}),e=>e.status===502); assert.equal(n.inserts.length,1); n.mailFail=false; await saveAndNotifyLead(lead,{env,fetchImpl:n.fetch}); assert.equal(n.inserts.length,1); assert.equal(n.emails.length,1); });
 test('database failure prevents notification', async () => { const n=network();n.dbFail=true; await assert.rejects(saveAndNotifyLead(validateLead(body),{env,fetchImpl:n.fetch}),e=>e.status===502);assert.equal(n.emails.length,0); });
 test('same id with changed payload cannot overwrite previous lead', async () => { const n=network(); await saveAndNotifyLead(validateLead(body),{env,fetchImpl:n.fetch}); await assert.rejects(saveAndNotifyLead(validateLead({...body,name:'Another person'}),{env,fetchImpl:n.fetch}),e=>e.status===409);assert.equal(n.emails.length,1); });
