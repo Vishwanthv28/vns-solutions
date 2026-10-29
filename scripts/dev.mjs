@@ -4,11 +4,12 @@ import consultant from '../api/consultant.js';
 import contact from '../api/contact.js';
 import lead from '../api/consultant-lead.js';
 import consultantVoice from '../api/consultant-voice.js';
+import consultantChat from '../api/consultant-chat.js';
 import owner from '../api/owner.js';
 const vite = await createServer({ server: { middlewareMode: true }, appType: 'spa' });
 const server = http.createServer(async (req, res) => {
   const route = req.url?.split('?')[0];
-  const handler = route === '/api/owner' ? owner : route === '/api/consultant' ? consultant : route === '/api/consultant-voice' ? consultantVoice : route === '/api/contact' ? contact : route === '/api/consultant-lead' ? lead : null;
+  const handler = route === '/api/owner' ? owner : route === '/api/consultant' ? consultant : route === '/api/consultant-chat' ? consultantChat : route === '/api/consultant-voice' ? consultantVoice : route === '/api/contact' ? contact : route === '/api/consultant-lead' ? lead : null;
   if (!handler) {
     if (route?.startsWith('/api/')) { res.writeHead(404, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ message: 'API endpoint not found.' })); return; }
     return vite.middlewares(req, res);

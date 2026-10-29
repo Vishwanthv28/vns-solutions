@@ -9,6 +9,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/platform/demo",
+      "destination": "/index.html"
+    },
+    {
       "source": "/concepts/:path*",
       "destination": "/index.html"
     }
@@ -18,6 +22,9 @@
       "maxDuration": 60
     },
     "api/consultant-voice.js": {
+      "maxDuration": 60
+    },
+    "api/consultant-chat.js": {
       "maxDuration": 60
     },
     "api/consultant-lead.js": {
