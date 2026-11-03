@@ -73,6 +73,9 @@ export function createConsultantVoiceHandler(
         message: error instanceof ConsultantVoiceError
           ? error.message
           : 'Voice service could not complete the request. Please retry.',
+        code: error instanceof ConsultantVoiceError
+          ? error.code
+          : 'VOICE_REQUEST_FAILED',
       });
     }
   };

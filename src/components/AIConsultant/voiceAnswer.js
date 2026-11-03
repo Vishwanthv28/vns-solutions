@@ -144,6 +144,12 @@ export async function transcribeVoiceRecording(blob, language, fetchImpl = fetch
   if (buffer.byteLength > 2_000_000) {
     throw new Error('This recording is too large to transcribe. Record a shorter answer.');
   }
+  const mimeType = blob.type || 'audio/webm';
+  const requestStartedAt = performance.now();
+  console.debug('[VNS voice upload]', {
+    audioBytes: buffer.byteLength,
+    mimeType,
+  });
   const bytes = new Uint8Array(buffer);
   let binary = '';
   for (let index = 0; index < bytes.length; index += 0x8000) {
@@ -157,15 +163,32 @@ export async function transcribeVoiceRecording(blob, language, fetchImpl = fetch
       body: JSON.stringify({
         action: 'transcribe',
         language,
-        mimeType: blob.type || 'audio/webm',
+        mimeType,
         audioBase64: btoa(binary),
       }),
     });
   } catch (failure) {
+    console.debug('[VNS voice upload]', {
+      httpStatus: null,
+      errorCode: failure.name === 'AbortError' ? 'CLIENT_ABORTED' : 'NETWORK_ERROR',
+      requestMs: Math.round(performance.now() - requestStartedAt),
+    });
     if (failure.name === 'AbortError') throw failure;
     throw new Error('Speech recognition could not connect. Retry transcription or record your answer again.');
   }
   const data = await response.json().catch(() => null);
+  const errorCode = typeof data?.code === 'string'
+    ? data.code
+    : response.ok
+      ? 'INVALID_TRANSCRIPTION_RESPONSE'
+      : 'TRANSCRIPTION_HTTP_ERROR';
+  console.debug('[VNS voice upload]', {
+    httpStatus: response.status,
+    errorCode: response.ok && data?.ok === true && typeof data.transcript === 'string'
+      ? null
+      : errorCode,
+    requestMs: Math.round(performance.now() - requestStartedAt),
+  });
   if (!response.ok || data?.ok !== true || typeof data.transcript !== 'string') {
     throw new Error(data?.message || 'Speech could not be transcribed. Retry or record your answer again.');
   }

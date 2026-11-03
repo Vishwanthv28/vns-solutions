@@ -117,8 +117,12 @@ test('provider errors produce a retryable transcription failure', async () => {
   const recording = new Blob([new Uint8Array([5, 6])], { type: 'audio/webm' });
   await assert.rejects(
     transcribeVoiceRecording(recording, 'en-IN', async () => new Response(
-      JSON.stringify({ ok: false, message: 'Voice service is busy. Please wait a moment and retry.' }),
-      { status: 503 },
+      JSON.stringify({
+        ok: false,
+        code: 'PROVIDER_RATE_LIMITED',
+        message: 'Voice service is busy. Please wait a moment and retry.',
+      }),
+      { status: 429 },
     )),
     /Voice service is busy/,
   );

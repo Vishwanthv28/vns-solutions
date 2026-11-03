@@ -1,8 +1,9 @@
 export class ConsultantVoiceError extends Error {
-  constructor(status, message) {
+  constructor(status, message, code = 'VOICE_SERVICE_ERROR') {
     super(message);
     this.name = 'ConsultantVoiceError';
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -25,7 +26,7 @@ const maxAudioBytes = 2_000_000;
 
 function requireLanguage(language) {
   if (!Object.hasOwn(voiceLanguages, language)) {
-    throw new ConsultantVoiceError(400, 'Choose English, Hindi, or Telugu.');
+    throw new ConsultantVoiceError(400, 'Choose English, Hindi, or Telugu.', 'UNSUPPORTED_LANGUAGE');
   }
 }
 
@@ -35,6 +36,7 @@ function requireApiKey(env) {
     throw new ConsultantVoiceError(
       503,
       'Voice support is not configured yet. Please contact VNS Solutions.',
+      'VOICE_NOT_CONFIGURED',
     );
   }
   return key;
@@ -53,6 +55,11 @@ async function providerJson(response) {
       response.status === 429
         ? 'Voice service is busy. Please wait a moment and retry.'
         : 'Voice service could not complete the request. Please retry.',
+      response.status === 429
+        ? 'PROVIDER_RATE_LIMITED'
+        : response.status === 503 || response.status === 504
+          ? 'PROVIDER_UNAVAILABLE'
+          : 'PROVIDER_HTTP_ERROR',
     );
   }
 
@@ -62,6 +69,7 @@ async function providerJson(response) {
     throw new ConsultantVoiceError(
       502,
       'Voice service returned an invalid response. Please retry.',
+      'PROVIDER_INVALID_RESPONSE',
     );
   }
 }
@@ -74,13 +82,21 @@ function validateAudio(audioBase64, mimeType) {
 
   if (!extension || typeof audioBase64 !== 'string' ||
       !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(audioBase64)) {
-    throw new ConsultantVoiceError(400, 'Record audio in a supported format and try again.');
+    throw new ConsultantVoiceError(
+      400,
+      'Record audio in a supported format and try again.',
+      'UNSUPPORTED_AUDIO_FORMAT',
+    );
   }
 
   const audio = Buffer.from(audioBase64, 'base64');
   if (!audio.length || audio.length > maxAudioBytes ||
       audio.toString('base64') !== audioBase64) {
-    throw new ConsultantVoiceError(400, 'The recording is empty or too large. Please record a shorter answer.');
+    throw new ConsultantVoiceError(
+      400,
+      'The recording is empty or too large. Please record a shorter answer.',
+      'EMPTY_OR_OVERSIZED_AUDIO',
+    );
   }
 
   return { audio, contentType, extension };
@@ -112,9 +128,17 @@ export async function transcribeSpeech(
     });
   } catch (error) {
     if (['TimeoutError', 'AbortError'].includes(error?.name)) {
-      throw new ConsultantVoiceError(504, 'Voice transcription took too long. Please retry.');
+      throw new ConsultantVoiceError(
+        504,
+        'Voice transcription took too long. Please retry.',
+        'TRANSCRIPTION_TIMEOUT',
+      );
     }
-    throw new ConsultantVoiceError(502, 'Voice transcription failed. Please retry.');
+    throw new ConsultantVoiceError(
+      502,
+      'Voice transcription failed. Please retry.',
+      'TRANSCRIPTION_PROVIDER_ERROR',
+    );
   }
 
   const data = await providerJson(response);
@@ -122,7 +146,8 @@ export async function transcribeSpeech(
       data.transcript.length > 2000) {
     throw new ConsultantVoiceError(
       502,
-      'No usable speech was found. Please try a shorter recording.',
+      'No usable speech was detected. Check your microphone and try again.',
+      'EMPTY_TRANSCRIPT',
     );
   }
 
@@ -137,7 +162,11 @@ export async function synthesizeSpeech(
   const key = requireApiKey(env);
   const spokenText = typeof text === 'string' ? text.trim() : '';
   if (!spokenText || spokenText.length > 2500) {
-    throw new ConsultantVoiceError(400, 'Choose text of up to 2,500 characters to read aloud.');
+    throw new ConsultantVoiceError(
+      400,
+      'Choose text of up to 2,500 characters to read aloud.',
+      'INVALID_SPEECH_TEXT',
+    );
   }
 
   let response;
@@ -158,9 +187,9 @@ export async function synthesizeSpeech(
     });
   } catch (error) {
     if (['TimeoutError', 'AbortError'].includes(error?.name)) {
-      throw new ConsultantVoiceError(504, 'Read aloud took too long. Please retry.');
+      throw new ConsultantVoiceError(504, 'Read aloud took too long. Please retry.', 'SYNTHESIS_TIMEOUT');
     }
-    throw new ConsultantVoiceError(502, 'Read aloud failed. Please retry.');
+    throw new ConsultantVoiceError(502, 'Read aloud failed. Please retry.', 'SYNTHESIS_PROVIDER_ERROR');
   }
 
   const data = await providerJson(response);
@@ -169,7 +198,11 @@ export async function synthesizeSpeech(
       !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(audioBase64) ||
       !audioBase64.length ||
       Buffer.from(audioBase64, 'base64').toString('base64') !== audioBase64) {
-    throw new ConsultantVoiceError(502, 'Voice service returned invalid audio. Please retry.');
+    throw new ConsultantVoiceError(
+      502,
+      'Voice service returned invalid audio. Please retry.',
+      'INVALID_SYNTHESIS_AUDIO',
+    );
   }
 
   return { audioBase64, mimeType: 'audio/wav' };

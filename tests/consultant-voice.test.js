@@ -59,6 +59,84 @@ test('transcription sends the selected language and audio to Sarvam server-side'
   assert.deepEqual(result, { transcript: 'నా వ్యాపారం' });
 });
 
+test('transcription MIME types are normalized consistently with their upload filenames', async () => {
+  for (const [mimeType, contentType, filename] of [
+    ['audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'recording.m4a'],
+    ['audio/ogg;codecs=opus', 'audio/ogg', 'recording.ogg'],
+    ['audio/webm;codecs=opus', 'audio/webm', 'recording.webm'],
+  ]) {
+    await transcribeSpeech({
+      audioBase64,
+      mimeType,
+      language: 'en-IN',
+    }, {
+      env,
+      fetchImpl: async (url, request) => {
+        assert.equal(url, 'https://api.sarvam.ai/speech-to-text');
+        const file = request.body.get('file');
+        assert.equal(file.type, contentType);
+        assert.equal(file.name, filename);
+        return new Response(JSON.stringify({ transcript: 'Restaurant' }), { status: 200 });
+      },
+    });
+  }
+});
+
+test('empty provider transcripts have a distinct error code from service failures', async () => {
+  await assert.rejects(
+    transcribeSpeech({
+      audioBase64,
+      mimeType: 'audio/mp4',
+      language: 'en-IN',
+    }, {
+      env,
+      fetchImpl: async () => new Response(JSON.stringify({ transcript: '' }), { status: 200 }),
+    }),
+    error => error instanceof ConsultantVoiceError &&
+      error.code === 'EMPTY_TRANSCRIPT' &&
+      error.message.includes('Check your microphone'),
+  );
+});
+
+test('provider rate limits and timeouts preserve their distinct failure codes', async () => {
+  for (const [status, code] of [[429, 'PROVIDER_RATE_LIMITED'], [504, 'PROVIDER_UNAVAILABLE']]) {
+    await assert.rejects(
+      transcribeSpeech({
+        audioBase64,
+        mimeType: 'audio/webm',
+        language: 'en-IN',
+      }, {
+        env,
+        fetchImpl: async () => new Response('{}', { status }),
+      }),
+      error => error instanceof ConsultantVoiceError && error.code === code,
+    );
+  }
+});
+
+test('voice API exposes stable provider error codes without provider details', async () => {
+  const result = await call({
+    action: 'transcribe',
+    language: 'en-IN',
+    audioBase64,
+    mimeType: 'audio/mp4',
+  }, {
+    transcribe: async () => {
+      throw new ConsultantVoiceError(
+        429,
+        'Voice service is busy. Please wait a moment and retry.',
+        'PROVIDER_RATE_LIMITED',
+      );
+    },
+  });
+
+  assert.equal(result.code, 429);
+  assert.deepEqual(result.data, {
+    message: 'Voice service is busy. Please wait a moment and retry.',
+    code: 'PROVIDER_RATE_LIMITED',
+  });
+});
+
 test('speech synthesis uses the selected language and returns only audio data', async () => {
   const audio = Buffer.from('wav audio').toString('base64');
   const result = await synthesizeSpeech({
@@ -123,6 +201,7 @@ test('voice API validates origin and method and does not expose provider failure
     handlers,
   );
   assert.equal(failed.code, 502);
+  assert.equal(failed.data.code, 'VOICE_REQUEST_FAILED');
   assert.ok(!JSON.stringify(failed.data).includes(env.SARVAM_API_KEY));
   assert.equal(failed.headers['Cache-Control'], 'no-store');
 });

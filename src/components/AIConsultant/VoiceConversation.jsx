@@ -288,18 +288,30 @@ export default function VoiceConversation({ language, question, answers, onAnswe
         startedAt: performance.now(),
         timer: null,
         session,
+        interrupted: false,
       };
       captureRef.current = capture;
       recorder.ondataavailable = event => {
         if (event.data?.size) capture.chunks.push(event.data);
       };
       recorder.onstop = () => {
-        cleanupCapture(capture);
+        if (capture.interrupted && capture.shouldTranscribe) {
+          capture.shouldTranscribe = false;
+          setFailure('Microphone was interrupted. Please record your answer again.', 'record');
+        }
         if (captureRef.current === capture) captureRef.current = null;
+        cleanupCapture(capture);
         captureMsRef.current = Math.round(performance.now() - capture.startedAt);
         if (!capture.shouldTranscribe || capture.session !== sessionRef.current ||
             !activeRef.current || mutedRef.current) return;
-        const blob = new Blob(capture.chunks, { type: recorder.mimeType || 'audio/webm' });
+        const mimeType = recorder.mimeType || capture.chunks.find(chunk => chunk.type)?.type ||
+          options?.mimeType || 'audio/webm';
+        const blob = new Blob(capture.chunks, { type: mimeType });
+        recordTiming({
+          captureMs: captureMsRef.current,
+          audioBytes: blob.size,
+          mimeType: blob.type || mimeType,
+        });
         if (!blob.size) {
           setFailure('No speech was recorded. Please retry the microphone.', 'record');
           return;
@@ -313,6 +325,17 @@ export default function VoiceConversation({ language, question, answers, onAnswe
         cleanupCapture(capture);
         setFailure('Microphone recording failed. Please retry or record your answer again.', 'record');
       };
+      for (const track of stream.getAudioTracks()) {
+        const handleInterruption = () => {
+          if (captureRef.current !== capture) return;
+          capture.interrupted = true;
+          if (recorder.state !== 'recording') return;
+          cancelCapture(true);
+          setFailure('Microphone was interrupted. Please record your answer again.', 'record');
+        };
+        track.addEventListener('ended', handleInterruption, { once: true });
+        track.addEventListener('mute', handleInterruption, { once: true });
+      }
       recorder.start(200);
       setError('');
       setRetryKind('');
@@ -449,6 +472,8 @@ export default function VoiceConversation({ language, question, answers, onAnswe
       recordTiming({ speechRecognitionMs: Math.round(performance.now() - startedAt) });
       window.clearTimeout(timeout);
       pendingBlobRef.current = null;
+      setError('');
+      setRetryKind('');
       handleTranscript(transcript);
     } catch (failure) {
       if (session !== sessionRef.current || (controller.signal.aborted && !timedOut)) return;
